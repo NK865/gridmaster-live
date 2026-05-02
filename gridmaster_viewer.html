@@ -394,10 +394,45 @@ function updateViewer(d) {
       const clkS = p.clock ? `${Math.floor(p.clock/60)}:${String(p.clock%60).padStart(2,'0')}` : '--:--';
       const isScore = p.result === 'td' || p.result === 'good' || p.result === 'pick6';
       const isPen   = p.type === 'penalty';
+      const oppTeam = p.team === 'a' ? 'b' : 'a';
+
+      // Build secondary info line
+      const infoItems = [];
+
+      // Tacklers (run, complete pass, kickoff/punt return)
+      if(p.tackler1?.name && p.tackler2?.name) {
+        infoItems.push(`TCKL: ${p.tackler1.name} / ${p.tackler2.name} (AST)`);
+      } else if(p.tackler1?.name) {
+        infoItems.push(`TCKL: ${p.tackler1.name}`);
+      }
+
+      // Defenders (sack, int)
+      if(p.result === 'sack' && p.defender1?.name) {
+        const sackStr = p.defender2?.name
+          ? `SACK: ${p.defender1.name} / ${p.defender2.name}`
+          : `SACK: ${p.defender1.name}`;
+        infoItems.push(sackStr);
+      }
+      if((p.result === 'int' || p.result === 'pick6') && p.defender1?.name) {
+        infoItems.push(`INT: ${p.defender1.name}`);
+      }
+
+      // PBU
+      if(p.pbu?.name) {
+        infoItems.push(`PBU: ${p.pbu.name}`);
+      }
+
+      const infoLine = infoItems.length
+        ? `<div style="font-size:11px;color:var(--wht3);margin-top:3px;padding-left:2px;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.5px;">${infoItems.join(' &nbsp;·&nbsp; ')}</div>`
+        : '';
+
       return `<div class="play-entry ${isScore?'score':isPen?'pen':''}">
-        <span class="play-time">Q${p.period||'?'} ${clkS}</span>
-        <span class="${teamColor}">${(p.team==='a'?d.teams?.a?.abbr:d.teams?.b?.abbr)||p.team}</span>
-        — ${p.desc || (p.type+' '+p.result).toUpperCase()}
+        <div>
+          <span class="play-time">Q${p.period||'?'} ${clkS}</span>
+          <span class="${teamColor}">${(p.team==='a'?d.teams?.a?.abbr:d.teams?.b?.abbr)||p.team}</span>
+          — ${p.desc || (p.type+' '+p.result).toUpperCase()}
+        </div>
+        ${infoLine}
       </div>`;
     }).join('');
   }
