@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>League Hub — GridMaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@500;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --g:#00c853; --g2:#00e676; --g3:#1b5e20; --g4:#2e7d32;
+    --blk:#0a0a0a; --blk2:#111; --blk3:#1a1a1a; --blk4:#222; --blk5:#2d2d2d;
+    --wht:#fff; --wht2:#e8e8e8; --wht3:#b0b0b0;
+    --red:#f44336; --yellow:#ffd600; --orange:#ff6d00; --teal:#00bfa5;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--blk); color:var(--wht); font-family:'Barlow',sans-serif; min-height:100vh; padding-bottom:60px; }
+  h1,h2,h3 { font-family:'Bebas Neue',sans-serif; letter-spacing:1px; }
+
+  #topbar {
+    background:var(--blk2); border-bottom:1px solid var(--blk5);
+    padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; position:sticky; top:0; z-index:50;
+  }
+  #topbar h1 { font-size:26px; color:var(--g2); letter-spacing:2px; }
+  #topbar .sub { color:var(--wht3); font-size:12px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .tb-input {
+    background:var(--blk4); border:1px solid var(--blk5); color:var(--wht);
+    border-radius:6px; padding:8px 10px; font-size:14px; font-family:'Barlow',sans-serif;
+  }
+  .tb-input::placeholder { color:var(--wht3); }
+  .tb-btn {
+    background:var(--g3); border:1px solid var(--g); color:var(--g2);
+    border-radius:6px; padding:8px 14px; font-size:13px; font-weight:700; letter-spacing:1px;
+    cursor:pointer; font-family:'Barlow Condensed',sans-serif;
+  }
+  .tb-btn:hover { background:var(--g4); }
+
+  #conn-line { width:100%; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--wht3); font-family:'Barlow Condensed',sans-serif; }
+  #conn-dot { width:8px; height:8px; border-radius:50%; background:var(--wht3); }
+  #conn-dot.live { background:var(--g2); box-shadow:0 0 6px var(--g); }
+  #conn-dot.waiting { background:var(--yellow); }
+  #conn-dot.error { background:var(--red); }
+
+  #tabs { display:flex; gap:0; background:var(--blk2); border-bottom:1px solid var(--blk5); overflow-x:auto; }
+  .tab-btn {
+    flex:1; min-width:110px; background:none; border:none; color:var(--wht3); padding:14px 10px;
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; letter-spacing:1px;
+    cursor:pointer; border-bottom:3px solid transparent;
+  }
+  .tab-btn.active { color:var(--g2); border-bottom-color:var(--g2); }
+
+  #content { max-width:960px; margin:0 auto; padding:20px 16px; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .card { background:var(--blk2); border:1px solid var(--blk5); border-radius:10px; padding:16px; margin-bottom:16px; }
+  .card-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; letter-spacing:1px; color:var(--wht3); font-size:13px; margin-bottom:10px; text-transform:uppercase; }
+
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; color:var(--wht3); font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:1px; padding:8px 6px; border-bottom:1px solid var(--blk5); text-transform:uppercase; }
+  td { padding:9px 6px; border-bottom:1px solid var(--blk4); }
+  tr:hover td { background:var(--blk3); }
+  .num-col { text-align:center; }
+  .team-cell { display:flex; align-items:center; gap:8px; }
+  .team-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .team-logo { border-radius:50%; object-fit:cover; flex-shrink:0; background:var(--blk4); }
+  .team-link { color:var(--wht2); text-decoration:none; cursor:pointer; }
+  .team-link:hover { color:var(--g2); }
+  .player-link { color:inherit; text-decoration:none; cursor:pointer; }
+  .player-link:hover { color:var(--g2); text-decoration:underline; }
+
+  /* Standings — larger, easier to read from a distance */
+  #panel-standings table { font-size:17px; }
+  #panel-standings th { font-size:13px; padding:10px 8px; }
+  #panel-standings td { padding:14px 8px; }
+  #panel-standings .team-logo { width:28px; height:28px; }
+  #panel-standings .team-dot { width:16px; height:16px; }
+
+  .leader-cat-tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .leader-cat-btn {
+    background:var(--blk4); border:1px solid var(--blk5); color:var(--wht3);
+    border-radius:20px; padding:7px 16px; font-size:13px; font-weight:700; letter-spacing:0.5px;
+    cursor:pointer; font-family:'Barlow Condensed',sans-serif;
+  }
+  .leader-cat-btn.active { background:var(--g3); border-color:var(--g); color:var(--g2); }
+  .leader-table-wrap table { font-size:14px; }
+  .leader-table-wrap .rank-col { width:30px; color:var(--wht3); font-family:'Bebas Neue',sans-serif; font-size:18px; }
+  .leader-table-wrap .primary-col { color:var(--g2); font-weight:700; }
+
+  .team-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:12px; }
+  .team-card { background:var(--blk3); border:1px solid var(--blk5); border-radius:10px; padding:14px; cursor:pointer; text-align:center; }
+  .team-card:hover { border-color:var(--g); }
+  .team-card .team-logo { width:44px; height:44px; margin:0 auto; }
+  .team-card .tc-name { font-family:'Bebas Neue',sans-serif; font-size:18px; margin-top:6px; }
+  .team-card .tc-rec { color:var(--wht3); font-size:13px; margin-top:4px; }
+
+  .roster-row { display:flex; gap:10px; padding:6px 4px; border-bottom:1px solid var(--blk4); font-size:14px; align-items:center; }
+  .roster-row .r-num { color:var(--wht3); width:28px; font-family:'Bebas Neue',sans-serif; font-size:16px; }
+  .roster-row .r-pos { color:var(--wht3); font-size:12px; width:32px; }
+
+  .sched-row { display:flex; align-items:center; justify-content:space-between; padding:10px 6px; border-bottom:1px solid var(--blk4); cursor:pointer; }
+  .sched-row:hover { background:var(--blk3); }
+  .sched-row.upcoming { border-left:3px solid var(--yellow); cursor:default; }
+  .sched-teams { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .sched-score { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--g2); }
+  .sched-score.tbd { color:var(--yellow); font-size:13px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .sched-date { color:var(--wht3); font-size:12px; font-family:'Barlow Condensed',sans-serif; }
+  .sched-section-lbl { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--wht3); letter-spacing:1px; margin:16px 0 6px; text-transform:uppercase; }
+  .sched-section-lbl:first-child { margin-top:0; }
+
+  .season-row { border:1px solid var(--blk5); border-radius:8px; padding:12px; margin-bottom:12px; background:var(--blk3); }
+  .season-row-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .season-row-remove { background:none; border:none; color:var(--red); cursor:pointer; font-size:14px; }
+  .cat-details { border:1px solid var(--blk5); border-radius:6px; margin-bottom:8px; }
+  .cat-details summary { padding:8px 10px; cursor:pointer; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:1px; color:var(--wht3); }
+  .cat-inputs { display:flex; flex-wrap:wrap; gap:8px; padding:0 10px 10px; }
+  .cat-inputs .ci-field { display:flex; flex-direction:column; gap:3px; }
+  .cat-inputs .ci-field label { font-size:10px; color:var(--wht3); }
+  .cat-inputs .ci-field input { width:60px; background:var(--blk4); border:1px solid var(--blk5); color:var(--wht); border-radius:4px; padding:5px; font-size:13px; }
+
+  #empty-state { text-align:center; padding:60px 20px; color:var(--wht3); }
+  #empty-state h2 { color:var(--wht2); margin-bottom:8px; }
+
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:500; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--blk2); border:1px solid var(--blk5); border-radius:12px; padding:20px; max-width:600px; width:100%; max-height:85vh; overflow-y:auto; }
+  .modal-title { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--g2); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
+  .modal-close { background:none; border:none; color:var(--wht3); font-size:20px; cursor:pointer; }
+  .stat-cat-lbl { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--wht3); letter-spacing:1px; margin:12px 0 6px; text-transform:uppercase; }
+
+  /* ── Player database ── */
+  .pdb-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px; }
+  .pdb-controls .field-group { display:flex; flex-direction:column; gap:4px; }
+  .pdb-controls label { font-size:11px; color:var(--wht3); font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; text-transform:uppercase; }
+  .pdb-count { color:var(--wht3); font-size:12px; margin-bottom:8px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .table-scroll table { min-width:100%; white-space:nowrap; }
+  th.sortable { cursor:pointer; user-select:none; }
+  th.sortable:hover { color:var(--g2); }
+  th.sorted { color:var(--g2); }
+  .pos-badge { display:inline-block; background:var(--blk4); border:1px solid var(--blk5); color:var(--wht3); border-radius:4px; padding:1px 6px; font-size:11px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .src-badge { display:inline-block; border-radius:3px; padding:0 4px; font-size:10px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .src-typed { background:#1a237e; color:#82b1ff; }
+  .src-game  { background:var(--blk4); color:var(--wht3); }
+
+  /* ── Player profile (PFR style) ── */
+  .modal.wide { max-width:900px; }
+  .pp-head { display:flex; gap:16px; align-items:flex-start; border-bottom:1px solid var(--blk5); padding-bottom:14px; margin-bottom:6px; flex-wrap:wrap; }
+  .pp-photo { width:96px; height:120px; border-radius:8px; object-fit:cover; background:var(--blk4); flex-shrink:0; }
+  .pp-photo-ph { width:96px; height:120px; border-radius:8px; background:var(--blk4); display:flex; align-items:center; justify-content:center; font-family:'Bebas Neue',sans-serif; font-size:32px; color:var(--wht3); flex-shrink:0; }
+  .pp-name { font-family:'Bebas Neue',sans-serif; font-size:34px; line-height:1; color:var(--wht); }
+  .pp-meta { color:var(--wht2); font-size:13px; margin-top:6px; line-height:1.7; }
+  .pp-meta b { color:var(--wht3); font-weight:600; }
+  .pp-summary { margin:14px 0 4px; }
+  .pp-summary table { font-size:13px; }
+  .pp-summary th { color:var(--g2); }
+  .pp-cat-hdr { display:flex; align-items:baseline; gap:10px; margin:22px 0 8px; border-bottom:1px solid var(--blk5); padding-bottom:4px; }
+  .pp-cat-hdr h3 { font-size:22px; color:var(--g2); }
+  .pp-cat-hdr .pp-cat-sub { color:var(--wht3); font-size:12px; font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; }
+  .pp-table th, .pp-table td { padding:6px 7px; font-size:13px; }
+  .pp-table tr.career-row td { font-weight:700; color:var(--g2); border-top:2px solid var(--blk5); background:var(--blk3); }
+  .pp-table tr.career-row:hover td { background:var(--blk3); }
+  .pp-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+
+  /* ── Admin player editor ── */
+  .pe-row { border:1px solid var(--blk5); border-radius:8px; padding:12px; margin-bottom:12px; background:var(--blk3); }
+  .pe-row-hdr { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:8px; }
+  .pe-row-hdr .field-group { display:flex; flex-direction:column; gap:3px; margin:0; }
+  .pe-row-hdr label { font-size:10px; color:var(--wht3); }
+  .pe-row-hdr input { width:110px; }
+  .pe-bio { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:12px; }
+  .pe-bio .field-group { display:flex; flex-direction:column; gap:3px; margin:0; }
+  .pe-bio label { font-size:11px; color:var(--wht3); }
+  .pe-del { background:none; border:none; color:var(--red); cursor:pointer; font-size:15px; margin-left:auto; }
+  .pe-cat-filled summary { color:var(--g2); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>LEAGUE HUB</h1>
+  <input class="tb-input" id="league-id-input" placeholder="League ID" style="width:140px;">
+  <select class="tb-input" id="season-select" style="width:120px;"></select>
+  <button class="tb-btn" onclick="loadLeague()">LOAD</button>
+  <div id="conn-line"><span id="conn-dot"></span><span id="conn-text">Enter a League ID to begin</span></div>
+</div>
+
+<div id="tabs" style="display:none;">
+  <button class="tab-btn active" onclick="switchTab('standings')" id="tab-standings">STANDINGS</button>
+  <button class="tab-btn" onclick="switchTab('leaders')" id="tab-leaders">STAT LEADERS</button>
+  <button class="tab-btn" onclick="switchTab('players')" id="tab-players">PLAYERS</button>
+  <button class="tab-btn" onclick="switchTab('teams')" id="tab-teams">TEAMS</button>
+  <button class="tab-btn" onclick="switchTab('schedule')" id="tab-schedule">SCHEDULE</button>
+  <button class="tab-btn" onclick="switchTab('admin')" id="tab-admin">ADMIN</button>
+</div>
+
+<div id="content">
+
+  <div id="empty-state">
+    <h2>No league loaded</h2>
+    <p>Enter your League ID above and click LOAD to see standings, leaders, teams, and schedule.</p>
+  </div>
+
+  <div class="panel" id="panel-standings">
+    <div class="card">
+      <div class="card-title">STANDINGS</div>
+      <table>
+        <thead><tr><th>TEAM</th><th class="num-col">W</th><th class="num-col">L</th><th class="num-col">T</th><th class="num-col">PF</th><th class="num-col">PA</th><th class="num-col">DIFF</th></tr></thead>
+        <tbody id="standings-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-leaders">
+    <div class="card">
+      <div class="card-title">STAT LEADERS</div>
+      <div class="leader-cat-tabs" id="leader-cat-tabs"></div>
+      <div class="leader-table-wrap" id="leaders-list"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-players">
+    <div class="card">
+      <div class="card-title">PLAYER DATABASE</div>
+      <div class="pdb-controls">
+        <div class="field-group" style="flex:1;min-width:180px;">
+          <label>SEARCH</label>
+          <input type="text" id="pdb-search" class="tb-input" style="width:100%;" placeholder="Name, team, or position" oninput="renderPlayers()">
+        </div>
+        <div class="field-group">
+          <label>VIEW</label>
+          <select id="pdb-cat" class="tb-input" onchange="pdbCatChanged()">
+            <option value="all">All players (A–Z)</option>
+            <option value="passing">Career passing</option>
+            <option value="rushing">Career rushing</option>
+            <option value="receiving">Career receiving</option>
+            <option value="defense">Career defense</option>
+            <option value="kicking">Career kicking</option>
+            <option value="returns">Career returns</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>SEASON</label>
+          <select id="pdb-season" class="tb-input" onchange="renderPlayers()"><option value="">All seasons</option></select>
+        </div>
+        <div class="field-group">
+          <label>TEAM</label>
+          <select id="pdb-team" class="tb-input" onchange="renderPlayers()"><option value="">All teams</option></select>
+        </div>
+        <button class="tb-btn" onclick="refreshPlayerIndex(true)">REFRESH</button>
+      </div>
+      <div class="pdb-count" id="pdb-count"></div>
+      <div class="table-scroll" id="pdb-list"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-teams">
+    <div class="card">
+      <div class="card-title">TEAMS</div>
+      <div class="team-grid" id="teams-grid"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-schedule">
+    <div class="card">
+      <div class="card-title">SCHEDULE / RESULTS</div>
+      <div id="schedule-list"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-admin">
+    <div class="card" id="admin-lock-card">
+      <div class="card-title">ADMIN ACCESS</div>
+      <p style="color:var(--wht3);font-size:13px;margin-bottom:12px;">Each League ID has its own passkey. The first passkey ever entered for a new League ID becomes that league's permanent passkey.</p>
+      <div class="field-group" style="margin-bottom:12px;">
+        <input type="password" id="admin-passphrase" class="tb-input" style="width:100%;" placeholder="This league's passkey">
+      </div>
+      <button class="tb-btn" onclick="unlockAdmin()">UNLOCK</button>
+      <div id="admin-lock-status" style="color:var(--red);font-size:13px;margin-top:8px;"></div>
+    </div>
+
+    <div class="card" id="admin-panel-card" style="display:none;">
+      <div class="card-title">ADD / EDIT TEAM</div>
+      <p style="color:var(--wht3);font-size:13px;margin-bottom:12px;">Create a team here before it's played its first game, or edit an existing team's display info. Slug must match exactly what's entered as the team slug on the dashboard's LEAGUE submit form.</p>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">TEAM SLUG (unique, lowercase-dash-case)</label>
+        <input type="text" id="admin-team-slug" class="tb-input" style="width:100%;" placeholder="e.g. columbus-lions">
+      </div>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">TEAM NAME</label>
+        <input type="text" id="admin-team-name" class="tb-input" style="width:100%;" placeholder="e.g. Columbus Lions">
+      </div>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">ABBREVIATION</label>
+        <input type="text" id="admin-team-abbr" class="tb-input" style="width:100%;" placeholder="e.g. CBL" maxlength="5">
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:12px;">TEAM COLOR</label>
+        <input type="color" id="admin-team-color" value="#00e676" style="width:60px;height:38px;border:1px solid var(--blk5);border-radius:6px;background:var(--blk4);">
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:12px;">LOGO URL (optional — link to a hosted image; falls back to the color dot if blank)</label>
+        <input type="text" id="admin-team-logo" class="tb-input" style="width:100%;" placeholder="https://.../logo.png">
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:12px;">ROSTER (optional — one player per line: <code>number, name, position, photo URL, player ID</code>). Player ID auto-fills from the name if left blank — it's what keeps a player's career stats together if they switch teams mid-season, so only override it if two players share the exact same name.</label>
+        <textarea id="admin-team-roster" rows="6" class="tb-input" style="width:100%;font-family:monospace;resize:vertical;" placeholder="12, John Smith, QB, https://.../jsmith.jpg&#10;7, Mike Jones, WR"></textarea>
+      </div>
+      <button class="tb-btn" onclick="adminSaveTeam()">SAVE TEAM</button>
+      <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="adminResetTeamForm()">CLEAR FORM</button>
+      <div id="admin-save-status" style="font-size:13px;margin-top:10px;"></div>
+
+      <div class="stat-cat-lbl" style="margin-top:20px;">EXISTING TEAMS (click to edit)</div>
+      <div class="team-grid" id="admin-teams-grid"></div>
+    </div>
+
+    <div class="card" id="admin-schedule-card" style="display:none;">
+      <div class="card-title">SCHEDULE A FUTURE GAME</div>
+      <p style="color:var(--wht3);font-size:13px;margin-bottom:12px;">Add an upcoming matchup with no score yet. It'll show on the Schedule tab and disappear once the real game is submitted from the dashboard and this entry is removed here.</p>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">SEASON ID</label>
+        <input type="text" id="admin-sched-season" class="tb-input" style="width:100%;" placeholder="e.g. 2026">
+      </div>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">HOME TEAM SLUG</label>
+        <input type="text" id="admin-sched-a" class="tb-input" style="width:100%;" placeholder="e.g. columbus-lions">
+      </div>
+      <div class="field-group" style="margin-bottom:10px;">
+        <label style="color:var(--wht3);font-size:12px;">AWAY TEAM SLUG</label>
+        <input type="text" id="admin-sched-b" class="tb-input" style="width:100%;" placeholder="e.g. wheeling-miners">
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:12px;">DATE</label>
+        <input type="date" id="admin-sched-date" class="tb-input" style="width:100%;">
+      </div>
+      <button class="tb-btn" onclick="adminAddScheduledGame()">ADD TO SCHEDULE</button>
+      <div id="admin-sched-status" style="font-size:13px;margin-top:10px;"></div>
+
+      <div class="stat-cat-lbl" style="margin-top:20px;">UPCOMING (click to remove)</div>
+      <div id="admin-schedule-list"></div>
+    </div>
+
+    <div class="card" id="admin-historical-card" style="display:none;">
+      <div class="card-title">ADD HISTORICAL STATS</div>
+      <p style="color:var(--wht3);font-size:13px;margin-bottom:12px;">
+        For backfilling seasons from before this system existed. Fill in whatever you actually have — leave Team B and its stats blank if you only have your own team's season totals with no opponent on record; leave individual stat boxes blank if you don't have that category. Reuse the same Game ID to correct/add to an entry later (e.g. adding an opponent's stats you find later doesn't require redoing your own team's).
+      </p>
+      <div class="grid-2" style="gap:10px;margin-bottom:10px;">
+        <div class="field-group" style="margin:0;">
+          <label style="color:var(--wht3);font-size:12px;">SEASON ID</label>
+          <input type="text" id="hist-season" class="tb-input" style="width:100%;" placeholder="e.g. 2024">
+        </div>
+        <div class="field-group" style="margin:0;">
+          <label style="color:var(--wht3);font-size:12px;">DATE (recommended — keeps season order correct)</label>
+          <input type="date" id="hist-date" class="tb-input" style="width:100%;">
+        </div>
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:12px;">GAME ID (optional — leave blank to auto-generate; reuse to overwrite/add to this same entry)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="hist-game-id" class="tb-input" style="width:100%;" placeholder="auto-generated if blank">
+          <button class="tb-btn" style="white-space:nowrap;background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="loadHistoricalGameForEditing()">LOAD FOR EDITING</button>
+        </div>
+        <div style="color:var(--wht3);font-size:11px;margin-top:4px;">Fill in Season ID + Game ID above, then click this to pull in what's already saved before you fix anything — editing blind risks wiping data you forget to retype.</div>
+      </div>
+
+      <div class="grid-2" style="gap:16px;">
+        <div>
+          <div class="stat-cat-lbl" style="margin-top:0;">TEAM A</div>
+          <div class="field-group" style="margin-bottom:8px;">
+            <label style="color:var(--wht3);font-size:12px;">TEAM SLUG</label>
+            <input type="text" id="hist-team-a" class="tb-input" style="width:100%;" placeholder="e.g. columbus-lions">
+          </div>
+          <div class="field-group" style="margin-bottom:10px;">
+            <label style="color:var(--wht3);font-size:12px;">SCORE (optional)</label>
+            <input type="number" id="hist-score-a" class="tb-input" style="width:100%;">
+          </div>
+          <div id="hist-a-cats"></div>
+        </div>
+        <div>
+          <div class="stat-cat-lbl" style="margin-top:0;">TEAM B (optional)</div>
+          <div class="field-group" style="margin-bottom:8px;">
+            <label style="color:var(--wht3);font-size:12px;">TEAM SLUG</label>
+            <input type="text" id="hist-team-b" class="tb-input" style="width:100%;" placeholder="leave blank if unknown">
+          </div>
+          <div class="field-group" style="margin-bottom:10px;">
+            <label style="color:var(--wht3);font-size:12px;">SCORE (optional)</label>
+            <input type="number" id="hist-score-b" class="tb-input" style="width:100%;">
+          </div>
+          <div id="hist-b-cats"></div>
+        </div>
+      </div>
+
+      <button class="tb-btn" style="margin-top:10px;" onclick="adminSaveHistoricalGame()">SAVE HISTORICAL STATS</button>
+      <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="swapHistoricalTeams()" title="Swap everything between the Team A and Team B columns">⇄ SWAP A / B</button>
+      <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="adminResetHistoricalForm()">CLEAR FORM</button>
+      <div id="admin-hist-status" style="font-size:13px;margin-top:10px;"></div>
+
+      <div class="stat-cat-lbl" style="margin-top:22px;">GAMES IN THE LOADED SEASON</div>
+      <div style="color:var(--wht3);font-size:11px;margin-bottom:8px;">
+        Click a game to pull it into the form above for editing, or ✕ to delete it. This lists the season currently selected in the top bar — switch seasons up there to see a different year.
+      </div>
+      <div id="admin-games-list"></div>
+    </div>
+
+    <div class="card" id="admin-player-career-card" style="display:none;">
+      <div class="card-title">PLAYER DATABASE — ADD / EDIT A PLAYER</div>
+      <p style="color:var(--wht3);font-size:13px;margin-bottom:12px;">
+        The main way to type in stats. Each row below is one player-season with one team — a player who switched teams mid-season just gets two rows for that season, exactly like Pro-Football-Reference. These are stored separately from game records, so they never double-count with games submitted from the dashboard: for any season+team where a typed row exists, the typed row is what shows.
+      </p>
+
+      <div class="pdb-controls" style="margin-bottom:14px;">
+        <div class="field-group" style="flex:1;min-width:200px;">
+          <label style="color:var(--wht3);font-size:11px;">LOAD AN EXISTING PLAYER</label>
+          <input type="text" id="pe-lookup" class="tb-input" list="pe-lookup-list" style="width:100%;" placeholder="Start typing a name...">
+          <datalist id="pe-lookup-list"></datalist>
+        </div>
+        <button class="tb-btn" onclick="adminLoadPlayerFromLookup()">LOAD</button>
+        <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="adminResetPlayerForm()">NEW PLAYER</button>
+      </div>
+
+      <div class="pe-bio">
+        <div class="field-group"><label>FULL NAME *</label><input type="text" id="pe-name" class="tb-input" placeholder="John Smith" oninput="peAutoPid()"></div>
+        <div class="field-group"><label>PLAYER ID (auto)</label><input type="text" id="pe-pid" class="tb-input" placeholder="john-smith"></div>
+        <div class="field-group"><label>POSITION</label><input type="text" id="pe-pos" class="tb-input" placeholder="QB"></div>
+        <div class="field-group"><label>JERSEY #</label><input type="text" id="pe-num" class="tb-input" placeholder="12"></div>
+        <div class="field-group"><label>CURRENT TEAM SLUG</label><input type="text" id="pe-team" class="tb-input" placeholder="columbus-lions"></div>
+        <div class="field-group"><label>STATUS</label>
+          <select id="pe-status" class="tb-input"><option value="active">Active</option><option value="inactive">Inactive / Retired</option></select>
+        </div>
+        <div class="field-group"><label>HEIGHT</label><input type="text" id="pe-ht" class="tb-input" placeholder="6-4"></div>
+        <div class="field-group"><label>WEIGHT (lb)</label><input type="text" id="pe-wt" class="tb-input" placeholder="235"></div>
+        <div class="field-group"><label>BORN</label><input type="text" id="pe-born" class="tb-input" placeholder="1992-12-11"></div>
+        <div class="field-group"><label>COLLEGE</label><input type="text" id="pe-college" class="tb-input" placeholder="NC State"></div>
+        <div class="field-group"><label>HOMETOWN</label><input type="text" id="pe-hometown" class="tb-input" placeholder="Dublin, GA"></div>
+        <div class="field-group"><label>PHOTO URL</label><input type="text" id="pe-photo" class="tb-input" placeholder="https://.../photo.jpg"></div>
+      </div>
+      <div class="field-group" style="margin-bottom:14px;">
+        <label style="color:var(--wht3);font-size:11px;">NOTES / BIO (optional)</label>
+        <textarea id="pe-note" rows="2" class="tb-input" style="width:100%;resize:vertical;"></textarea>
+      </div>
+
+      <details class="cat-details" style="margin-bottom:14px;">
+        <summary>QUICK PASTE — TYPE OR PASTE A WHOLE CAREER AT ONCE</summary>
+        <div style="padding:0 10px 12px;">
+          <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px;">
+            <div class="field-group" style="margin:0;">
+              <label style="color:var(--wht3);font-size:11px;">CATEGORY</label>
+              <select id="pe-paste-cat" class="tb-input" onchange="updatePasteHint()"></select>
+            </div>
+            <button class="tb-btn" onclick="applyPlayerPaste()">ADD ROWS</button>
+          </div>
+          <div id="pe-paste-hint" style="color:var(--wht3);font-size:11px;margin-bottom:6px;font-family:monospace;"></div>
+          <textarea id="pe-paste" rows="5" class="tb-input" style="width:100%;font-family:monospace;font-size:12px;resize:vertical;" placeholder="2024, columbus-lions, 14, 315, 485, 3366, 23, 8"></textarea>
+          <div style="color:var(--wht3);font-size:11px;margin-top:5px;">One season per line. Missing trailing values are treated as 0. Pasting the same season+team twice updates that row instead of duplicating it.</div>
+        </div>
+      </details>
+
+      <div id="pe-seasons"></div>
+      <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);margin-top:6px;" onclick="addPlayerSeasonRow()">+ ADD SEASON</button>
+      <br>
+      <button class="tb-btn" style="margin-top:12px;" onclick="adminSavePlayer()">SAVE PLAYER</button>
+      <button class="tb-btn" style="background:var(--blk5);border-color:var(--blk4);color:var(--wht3);" onclick="adminResetPlayerForm()">CLEAR FORM</button>
+      <div id="admin-pcareer-status" style="font-size:13px;margin-top:10px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOX SCORE MODAL -->
+<div class="modal-overlay" id="box-modal">
+  <div class="modal">
+    <div class="modal-title"><span id="box-title">BOX SCORE</span>
+      <button class="modal-close" onclick="closeModal('box-modal')">✕</button>
+    </div>
+    <div id="box-body"></div>
+  </div>
+</div>
+
+<!-- TEAM MODAL -->
+<div class="modal-overlay" id="team-modal">
+  <div class="modal">
+    <div class="modal-title"><span id="team-modal-title">TEAM</span>
+      <button class="modal-close" onclick="closeModal('team-modal')">✕</button>
+    </div>
+    <div id="team-modal-body"></div>
+  </div>
+</div>
+
+<!-- PLAYER PROFILE MODAL -->
+<div class="modal-overlay" id="player-modal">
+  <div class="modal wide">
+    <div class="modal-title"><span id="player-modal-title">PLAYER</span>
+      <button class="modal-close" onclick="closeModal('player-modal')">✕</button>
+    </div>
+    <div id="player-modal-body"></div>
+  </div>
+</div>
+
+<script>
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDykV8iQukxY00gDkBllu06bDgqak_6zk4",
+  authDomain:        "gridmaster-live.firebaseapp.com",
+  databaseURL:       "https://gridmaster-live-default-rtdb.firebaseio.com",
+  projectId:         "gridmaster-live",
+  storageBucket:     "gridmaster-live.firebasestorage.app",
+  messagingSenderId: "186706105208",
+  appId:             "1:186706105208:web:0baab38c7a018a86d7ae8d"
+};
+
+let fbDb = null;
+let currentLeagueId = null;
+let currentSeasonId = null;
+let teamsData = {};   // slug -> {name, abbr, color, logoUrl, roster:[{num,name,pos}]}
+let gamesData = {};   // gameId -> game record
+let scheduleData = {}; // scheduleId -> {teamA, teamB, date}
+let standings = {};   // slug -> {w,l,t,pf,pa}
+let playerTotals = {}; // "slug__num" -> aggregated stats
+
+const LEADER_TABLE_CONFIG = {
+  passing:   { label:'Passing',   sortField:'yds', columns:[['cmp','CMP'],['att','ATT'],['yds','YDS'],['td','TD'],['int','INT']] },
+  rushing:   { label:'Rushing',   sortField:'yds', columns:[['car','CAR'],['yds','YDS'],['td','TD']] },
+  receiving: { label:'Receiving', sortField:'yds', columns:[['tgt','TGT'],['rec','REC'],['yds','YDS'],['td','TD']] },
+  defense:   { label:'Defense',   sortField:'tot', columns:[['tot','TKL'],['solo','SOLO'],['sacks','SACK'],['ints','INT'],['pbu','PBU']] },
+  kicking:   { label:'Kicking',   sortField:'fg_made', columns:[['fg_made','FGM'],['fg_att','FGA'],['pat_made','PATM'],['pat_att','PATA']] },
+  returns:   { label:'Returns',   sortField:'kr_yds',  columns:[['kr','KR'],['kr_yds','KYDS'],['kr_td','KTD'],['pr','PR'],['pr_yds','PYDS'],['pr_td','PTD']] },
+};
+let activeLeaderCat = 'passing';
+
+// ── Full stat definitions for the player database ──
+// LEADER_TABLE_CONFIG above stays the short "leaderboard" view; this is the
+// complete field set a player profile shows and the admin editor accepts.
+// Field KEYS must match exactly what the dashboard writes into game records
+// (see buildFirebasePayload) so typed rows and game-derived rows are directly
+// comparable — only add new keys here, never rename an existing one.
+const STAT_FIELDS = {
+  passing:   { label:'Passing',   primary:'yds',
+    fields:[['cmp','CMP'],['att','ATT'],['yds','YDS'],['td','TD'],['int','INT'],['sk','SK'],['lng','LNG']],
+    derived:[['pct','CMP%',r=>r.att?r.cmp/r.att*100:null,1],['ypa','Y/A',r=>r.att?r.yds/r.att:null,1],['rate','RATE',r=>passerRating(r),1]] },
+  rushing:   { label:'Rushing',   primary:'yds',
+    fields:[['car','CAR'],['yds','YDS'],['td','TD'],['lng','LNG']],
+    derived:[['avg','AVG',r=>r.car?r.yds/r.car:null,1]] },
+  receiving: { label:'Receiving', primary:'yds',
+    fields:[['tgt','TGT'],['rec','REC'],['yds','YDS'],['td','TD'],['lng','LNG']],
+    derived:[['avg','AVG',r=>r.rec?r.yds/r.rec:null,1]] },
+  defense:   { label:'Defense',   primary:'tot',
+    fields:[['tot','TKL'],['solo','SOLO'],['ast','AST'],['tfl','TFL'],['sacks','SACK'],['ints','INT'],['int_yds','IYDS'],['def_td','TD'],['pbu','PBU'],['ff','FF'],['fr','FR']],
+    derived:[] },
+  kicking:   { label:'Kicking',   primary:'fg_made',
+    fields:[['fg_made','FGM'],['fg_att','FGA'],['fg_long','LNG'],['fg_blk','BLK'],['pat_made','XPM'],['pat_att','XPA'],['dk_pat_made','DKM'],['dk_pat_att','DKA']],
+    derived:[['fgpct','FG%',r=>r.fg_att?r.fg_made/r.fg_att*100:null,1],['pts','PTS',r=>(r.fg_made||0)*3+(r.pat_made||0)+(r.dk_pat_made||0)*2,0]] },
+  returns:   { label:'Returns',   primary:'kr_yds',
+    fields:[['kr','KR'],['kr_yds','KYDS'],['kr_td','KTD'],['kr_lng','KLNG'],['pr','PR'],['pr_yds','PYDS'],['pr_td','PTD'],['pr_lng','PLNG']],
+    derived:[] },
+};
+const STAT_CATS = Object.keys(STAT_FIELDS);
+// "Longest" fields are a career maximum, not a sum — adding them up would be
+// meaningless (three 40-yard runs is not a 120-yard run).
+const MAX_FIELDS = new Set(['lng','fg_long','kr_lng','pr_lng']);
+
+function mergeStat(target, src) {
+  Object.entries(src || {}).forEach(([k,v]) => {
+    if(typeof v !== 'number' || !isFinite(v)) return;
+    if(MAX_FIELDS.has(k)) target[k] = Math.max(target[k] || 0, v);
+    else target[k] = (target[k] || 0) + v;
+  });
+  return target;
+}
+function statHasAny(obj) {
+  return !!obj && Object.values(obj).some(v => typeof v === 'number' && v !== 0);
+}
+// Standard NFL passer rating — indoor leagues publish the same formula.
+function passerRating(r) {
+  const att = r.att || 0;
+  if(!att) return null;
+  const clamp = v => Math.max(0, Math.min(2.375, v));
+  const a = clamp(((r.cmp||0)/att - 0.3) * 5);
+  const b = clamp(((r.yds||0)/att - 3) * 0.25);
+  const c = clamp(((r.td||0)/att) * 20);
+  const d = clamp(2.375 - ((r.int||0)/att * 25));
+  return ((a + b + c + d) / 6) * 100;
+}
+function fmtNum(v, dp) {
+  if(v == null || !isFinite(v)) return '—';
+  return dp ? v.toFixed(dp) : String(Math.round(v));
+}
+
+// ── Player database state ──
+let playersData = {};        // pid -> bio record from leagues/{L}/players
+let allSeasons = {};         // full seasons snapshot (games + playerStats + meta)
+let playerIndex = {};        // pid -> { bio, rows:[{sid,team,num,name,gp,typed,cats}], career, teams, seasons }
+let typedSeasonStats = {};   // rowKey -> typed row for the CURRENTLY loaded season (live)
+let pdbSort = { key:null, dir:-1 };
+let indexLoading = false;
+
+// Renders a team's logo image if set, otherwise a colored dot — used everywhere
+// a team needs a visual marker (standings, leaders, teams, schedule, modals).
+function teamLogoOrDot(slug, size) {
+  const t = teamsData[slug];
+  size = size || 16;
+  if(t && t.logoUrl) {
+    return `<img class="team-logo" src="${t.logoUrl}" style="width:${size}px;height:${size}px;" onerror="this.style.display='none'">`;
+  }
+  return `<span class="team-dot" style="background:${teamColor(slug)};width:${size}px;height:${size}px;"></span>`;
+}
+
+function loadScripts(urls) {
+  return urls.reduce((p, url) => p.then(() => new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = url; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  })), Promise.resolve());
+}
+
+function setConn(status, text) {
+  document.getElementById('conn-dot').className = status;
+  document.getElementById('conn-text').textContent = text;
+}
+
+function toArray(val) {
+  if(!val) return [];
+  if(Array.isArray(val)) return val;
+  return Object.keys(val).map(k => val[k]).filter(v => v != null);
+}
+
+// ── Init Firebase, then wait for user to load a league ──
+loadScripts([
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+]).then(() => {
+  const fbApp = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FB_CONFIG);
+  fbDb = fbApp.database();
+
+  // Populate leader category tabs
+  const catTabs = document.getElementById('leader-cat-tabs');
+  catTabs.innerHTML = Object.entries(LEADER_TABLE_CONFIG).map(([key,cfg]) =>
+    `<button class="leader-cat-btn${key===activeLeaderCat?' active':''}" id="leader-cat-${key}" onclick="setLeaderCat('${key}')">${cfg.label}</button>`
+  ).join('');
+
+  // Auto-load from URL params (?league=X&season=Y) or localStorage, for easy embedding
+  const params = new URLSearchParams(location.search);
+  const savedLeague = params.get('league') || localStorage.getItem('gm_hub_league') || '';
+  document.getElementById('league-id-input').value = savedLeague;
+  if(savedLeague) {
+    loadLeague(params.get('season'));
+    // ?player=pid opens straight to a profile — shareable player links.
+    const deepPid = params.get('player');
+    if(deepPid) {
+      const wait = setInterval(() => {
+        if(Object.keys(playerIndex).length) { clearInterval(wait); openPlayerById(deepPid); }
+      }, 300);
+      setTimeout(() => clearInterval(wait), 15000);
+    }
+  }
+
+}).catch(err => {
+  setConn('error', 'FAILED TO LOAD FIREBASE');
+  console.error(err);
+});
+
+async function loadLeague(preferredSeason) {
+  const leagueId = document.getElementById('league-id-input').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  if(!leagueId) { setConn('error','Enter a League ID'); return; }
+  if(!fbDb) { setConn('error','Firebase not ready yet — try again'); return; }
+
+  currentLeagueId = leagueId;
+  localStorage.setItem('gm_hub_league', leagueId);
+  setConn('waiting', 'Loading league "' + leagueId + '"...');
+
+  try {
+    const teamsSnap = await fbDb.ref(`leagues/${leagueId}/teams`).once('value');
+    const rawTeams = teamsSnap.val() || {};
+    // Soft-deleted teams (see adminDeleteTeam) are filtered out here rather
+    // than actually removed from Firebase, so the passkey check still applies.
+    teamsData = Object.fromEntries(Object.entries(rawTeams).filter(([slug,t]) => !t.deleted));
+    if(adminUnlocked) renderAdminTeams();
+
+    const seasonsSnap = await fbDb.ref(`leagues/${leagueId}/seasons`).once('value');
+    const seasons = seasonsSnap.val() || {};
+    const seasonIds = Object.keys(seasons);
+
+    const seasonSel = document.getElementById('season-select');
+    seasonSel.innerHTML = seasonIds.map(s => {
+      const lbl = seasons[s]?.meta?.label;
+      return `<option value="${s}">${lbl ? lbl : s}</option>`;
+    }).join('');
+
+    if(!seasonIds.length) {
+      setConn('waiting', 'No games submitted for "' + leagueId + '" yet');
+      document.getElementById('empty-state').style.display = 'block';
+      document.getElementById('tabs').style.display = 'none';
+      return;
+    }
+
+    const seasonId = (preferredSeason && seasonIds.includes(preferredSeason)) ? preferredSeason : seasonIds[seasonIds.length - 1];
+    seasonSel.value = seasonId;
+    seasonSel.onchange = () => loadSeason(leagueId, seasonSel.value);
+
+    loadSeason(leagueId, seasonId);
+    refreshPlayerIndex();
+  } catch(e) {
+    setConn('error', 'Load failed: ' + (e.message || e));
+  }
+}
+
+function loadSeason(leagueId, seasonId) {
+  fbDb.ref(`leagues/${leagueId}/seasons/${seasonId}/games`).on('value', snap => {
+    // Deleted games are tombstoned rather than removed (remove() carries no
+    // passkey), so drop anything without a teamA before anything else sees it.
+    gamesData = Object.fromEntries(
+      Object.entries(snap.val() || {}).filter(([id,g]) => g && g.teamA && !g.deleted));
+    computeAll();
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('tabs').style.display = 'flex';
+    setConn('live', Object.keys(gamesData).length + ' game(s) loaded — LIVE');
+    renderStandings();
+    renderLeaders();
+    renderTeams();
+    renderSchedule();
+    if(adminUnlocked) renderAdminGamesList();
+  }, err => {
+    setConn('error', 'Sync error: ' + (err.message || err));
+  });
+
+  fbDb.ref(`leagues/${leagueId}/seasons/${seasonId}/schedule`).on('value', snap => {
+    scheduleData = snap.val() || {};
+    renderSchedule();
+    if(adminUnlocked) renderAdminSchedule();
+  });
+
+  // Typed-in season lines for this season. These live alongside games rather
+  // than inside them, so hand-entered totals and dashboard-submitted games can
+  // coexist without one silently doubling the other.
+  fbDb.ref(`leagues/${leagueId}/seasons/${seasonId}/playerStats`).on('value', snap => {
+    const raw = snap.val() || {};
+    typedSeasonStats = Object.fromEntries(Object.entries(raw).filter(([k,v]) => v && !v.deleted));
+    computeAll();
+    renderStandings();
+    renderLeaders();
+    renderTeams();
+  });
+
+  currentSeasonId = seasonId;
+}
+
+// ── Aggregate all games into standings + player totals ──
+// This is a full replay every time data changes (never incremental counters),
+// so correcting/resubmitting a single game is always safe and never double-counts.
+function computeAll() {
+  standings = {};
+  playerTotals = {};
+
+  const ensureTeam = (slug) => {
+    if(!standings[slug]) standings[slug] = { w:0, l:0, t:0, pf:0, pa:0 };
+  };
+
+  Object.values(gamesData).forEach(g => {
+    // teamB (and a score) is required for standings math, but not for
+    // counting a player's stats — this lets historical entries where only
+    // one team's season totals are known (no opponent/score on record)
+    // still feed Stat Leaders and that team's page without faking a result.
+    if(!g || !g.teamA) return;
+    if(g.teamB && g.scores) {
+      const sa = g.scores.a ?? 0, sb = g.scores.b ?? 0;
+      ensureTeam(g.teamA); ensureTeam(g.teamB);
+
+      standings[g.teamA].pf += sa; standings[g.teamA].pa += sb;
+      standings[g.teamB].pf += sb; standings[g.teamB].pa += sa;
+
+      if(sa > sb)      { standings[g.teamA].w++; standings[g.teamB].l++; }
+      else if(sb > sa) { standings[g.teamB].w++; standings[g.teamA].l++; }
+      else              { standings[g.teamA].t++; standings[g.teamB].t++; }
+    }
+
+  });
+
+  // Player stats are aggregated per (player, team) "unit" first, THEN collapsed
+  // by player. Doing it in that order is what lets a typed season line cleanly
+  // replace the game-derived numbers for exactly the team it belongs to,
+  // without disturbing the same player's stats with any other team.
+  const units = buildUnitsFromGames(gamesData);
+  applyTypedUnits(units, typedSeasonStats);
+
+  Object.values(units).forEach(u => {
+    const key = u.idKey;
+    if(!playerTotals[key]) {
+      playerTotals[key] = { pid:u.pid, num:u.num, name:u.name, team:u.team, lastTs:-Infinity };
+      STAT_CATS.forEach(c => playerTotals[key][c] = {});
+    }
+    const t = playerTotals[key];
+    // Display team/number/name follow the most recent appearance, so a traded
+    // player shows under the team they're actually on now.
+    if(u.lastTs >= t.lastTs) { t.team = u.team; t.num = u.num; t.name = u.name; t.lastTs = u.lastTs; }
+    STAT_CATS.forEach(c => mergeStat(t[c], u.cats[c]));
+  });
+}
+
+// Replays raw game records into per-(player, team) buckets.
+function buildUnitsFromGames(games) {
+  const units = {};
+  Object.values(games || {}).forEach(g => {
+    if(!g || !g.teamA) return;
+    const sides = g.teamB ? ['a','b'] : ['a'];
+    sides.forEach(side => {
+      const slug = side === 'a' ? g.teamA : g.teamB;
+      if(!slug) return;
+      const sideStats = g.stats?.[side] || {};
+      const seenThisGame = new Set();
+      STAT_CATS.forEach(cat => {
+        toArray(sideStats[cat]).forEach(p => {
+          if(!p || (p.num == null && !p.name)) return;
+          // Prefer the stable player ID (pid) as the identity key so a
+          // mid-season team switch doesn't fork a player's stats in two, and
+          // doesn't collide with a different person who reuses that number.
+          // Falls back to team+number for entries with no pid (e.g. players
+          // added by hand on the dashboard rather than loaded from a roster).
+          const idKey = p.pid ? `pid__${p.pid}` : `noid__${slug}__${p.num ?? p.name}`;
+          const key = idKey + '||' + slug;
+          if(!units[key]) {
+            units[key] = { idKey, pid:p.pid||null, num:p.num, name:p.name, team:slug, lastTs:-Infinity, gp:0, typed:false, cats:{} };
+            STAT_CATS.forEach(c => units[key].cats[c] = {});
+          }
+          const u = units[key];
+          if(!seenThisGame.has(key)) { u.gp++; seenThisGame.add(key); }
+          if((g.ts||0) >= u.lastTs) { u.lastTs = g.ts||0; u.num = p.num; u.name = p.name || u.name; }
+          const bucket = u.cats[cat];
+          Object.entries(p).forEach(([k,v]) => {
+            if(k === 'num' || k === 'name' || k === 'pid') return;
+            if(typeof v === 'number') {
+              if(MAX_FIELDS.has(k)) bucket[k] = Math.max(bucket[k]||0, v);
+              else bucket[k] = (bucket[k]||0) + v;
+            }
+          });
+        });
+      });
+    });
+  });
+  return units;
+}
+
+// Typed season rows win outright over whatever the games said for that same
+// season + team. This is the whole reason typed stats live in their own node:
+// overwriting a unit is unambiguous, whereas merging hand-entered season
+// totals into game records (the old approach) silently double-counted.
+function applyTypedUnits(units, typedRows) {
+  Object.values(typedRows || {}).forEach(row => {
+    if(!row || row.deleted || !row.team) return;
+    const pid = row.pid || slugify(row.name || '');
+    if(!pid) return;
+    const idKey = `pid__${pid}`;
+    const key = idKey + '||' + row.team;
+    const cats = {};
+    STAT_CATS.forEach(c => cats[c] = Object.assign({}, row[c] || {}));
+    units[key] = {
+      idKey, pid, num:row.num ?? null, name:row.name || pid, team:row.team,
+      lastTs: row.ts || 0, gp: Number(row.gp) || 0, typed:true, cats
+    };
+  });
+  return units;
+}
+
+// Team-scoped player totals — used on a Team's page so a traded player's
+// stats only count the games they actually played for THIS team.
+function computeTeamRoster(slug) {
+  const units = buildUnitsFromGames(gamesData);
+  applyTypedUnits(units, typedSeasonStats);
+  return Object.values(units)
+    .filter(u => u.team === slug)
+    .map(u => ({ pid:u.pid, num:u.num, name:u.name, gp:u.gp, typed:u.typed, ...u.cats }));
+}
+
+function teamLabel(slug) {
+  const t = teamsData[slug];
+  return t ? (t.name || slug) : slug;
+}
+function teamAbbr(slug) {
+  const t = teamsData[slug];
+  return t ? (t.abbr || slug.toUpperCase()) : slug.toUpperCase();
+}
+function teamColor(slug) {
+  return (teamsData[slug] && teamsData[slug].color) || 'var(--wht3)';
+}
+
+// ── Tabs ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if(name === 'players') renderPlayers();
+}
+switchTab('standings');
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── Standings ──
+function renderStandings() {
+  const rows = Object.entries(standings).map(([slug, s]) => ({ slug, ...s, diff: s.pf - s.pa }))
+    .sort((a,b) => (b.w - a.w) || (b.diff - a.diff));
+  document.getElementById('standings-body').innerHTML = rows.map(r => `
+    <tr>
+      <td><div class="team-cell">${teamLogoOrDot(r.slug,26)}
+        <span class="team-link" onclick="openTeamModal('${r.slug}')">${teamLabel(r.slug)}</span></div></td>
+      <td class="num-col">${r.w}</td><td class="num-col">${r.l}</td><td class="num-col">${r.t}</td>
+      <td class="num-col">${r.pf}</td><td class="num-col">${r.pa}</td>
+      <td class="num-col" style="color:${r.diff>0?'var(--g2)':r.diff<0?'var(--red)':'var(--wht3)'}">${r.diff>0?'+':''}${r.diff}</td>
+    </tr>`).join('') || '<tr><td colspan="7" style="color:var(--wht3);text-align:center;padding:20px;">No games yet</td></tr>';
+}
+
+// ── Stat Leaders ──
+function setLeaderCat(key) {
+  activeLeaderCat = key;
+  document.querySelectorAll('.leader-cat-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('leader-cat-' + key);
+  if(btn) btn.classList.add('active');
+  renderLeaders();
+}
+
+function renderLeaders() {
+  const cfg = LEADER_TABLE_CONFIG[activeLeaderCat];
+  const rows = Object.values(playerTotals)
+    .map(p => ({ ...p, stats: p[activeLeaderCat] || {} }))
+    .filter(p => (p.stats[cfg.sortField] || 0) > 0)
+    .sort((a,b) => (b.stats[cfg.sortField]||0) - (a.stats[cfg.sortField]||0))
+    .slice(0, 15);
+
+  if(!rows.length) {
+    document.getElementById('leaders-list').innerHTML = '<div style="color:var(--wht3);padding:16px 0;">No ' + cfg.label.toLowerCase() + ' stats yet</div>';
+    return;
+  }
+
+  const head = `<tr><th class="rank-col">#</th><th>PLAYER</th><th>TEAM</th>` +
+    cfg.columns.map(([k,label]) => `<th class="num-col${k===cfg.sortField?' primary-col':''}">${label}</th>`).join('') + `</tr>`;
+  const body = rows.map((p,i) => `
+    <tr>
+      <td class="rank-col">${i+1}</td>
+      <td><div class="team-cell">${teamLogoOrDot(p.team,20)}<span class="player-link" onclick="openPlayerModal('${p.team}','${p.num}','${p.pid||''}')">#${p.num ?? '—'} ${p.name || 'Unknown'}</span></div></td>
+      <td style="color:var(--wht3);">${teamAbbr(p.team)}</td>
+      ${cfg.columns.map(([k]) => `<td class="num-col${k===cfg.sortField?' primary-col':''}">${p.stats[k]||0}</td>`).join('')}
+    </tr>`).join('');
+
+  document.getElementById('leaders-list').innerHTML = `<table>${head}${body}</table>`;
+}
+
+// ── Teams ──
+function renderTeams() {
+  const slugs = new Set([...Object.keys(teamsData), ...Object.keys(standings)]);
+  document.getElementById('teams-grid').innerHTML = [...slugs].map(slug => {
+    const s = standings[slug] || {w:0,l:0,t:0};
+    return `<div class="team-card" onclick="openTeamModal('${slug}')">
+      ${teamLogoOrDot(slug,44)}
+      <div class="tc-name">${teamLabel(slug)}</div>
+      <div class="tc-rec">${s.w}-${s.l}${s.t?'-'+s.t:''}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--wht3);">No teams yet</div>';
+}
+
+function openTeamModal(slug) {
+  const s = standings[slug] || {w:0,l:0,t:0,pf:0,pa:0};
+  document.getElementById('team-modal-title').textContent = teamLabel(slug);
+  const roster = computeTeamRoster(slug).sort((a,b) => (a.num ?? 999) - (b.num ?? 999));
+  const teamGames = Object.entries(gamesData).filter(([id,g]) => g.teamB && (g.teamA === slug || g.teamB === slug));
+  const officialRoster = (teamsData[slug]?.roster) || [];
+  document.getElementById('team-modal-body').innerHTML = `
+    <div style="margin-bottom:14px;color:var(--wht3);">Record: ${s.w}-${s.l}${s.t?'-'+s.t:''} · PF ${s.pf} · PA ${s.pa}</div>
+    ${officialRoster.length ? `
+    <div class="stat-cat-lbl">ROSTER</div>
+    ${officialRoster.slice().sort((a,b)=>(a.num??999)-(b.num??999)).map(p => `
+      <div class="roster-row" style="cursor:pointer;" onclick="openPlayerModal('${slug}','${p.num}','${p.pid||''}')"><span class="r-num">${p.num ?? '—'}</span><span style="flex:1;">${p.name||''}</span><span class="r-pos">${p.pos||''}</span></div>
+    `).join('')}` : ''}
+    <div class="stat-cat-lbl">GAMES (${teamGames.length})</div>
+    ${teamGames.map(([id,g]) => {
+      const opp = g.teamA === slug ? g.teamB : g.teamA;
+      const my  = g.teamA === slug ? g.scores?.a : g.scores?.b;
+      const th  = g.teamA === slug ? g.scores?.b : g.scores?.a;
+      return `<div style="padding:6px 0;border-bottom:1px solid var(--blk4);cursor:pointer;" onclick="openBoxScore('${id}')">vs ${teamLabel(opp)} — ${my ?? '—'}-${th ?? '—'}</div>`;
+    }).join('') || '<div style="color:var(--wht3);">None yet</div>'}
+    <div class="stat-cat-lbl">SEASON STAT TOTALS (this team only)</div>
+    ${roster.map(p => `<div style="padding:4px 0;font-size:13px;"><span class="player-link" onclick="openPlayerModal('${slug}','${p.num}','${p.pid||''}')">#${p.num ?? '—'} ${p.name}</span> —
+      ${p.passing?.yds ? 'PASS ' + p.passing.yds + 'yds/' + (p.passing.td||0) + 'td ' : ''}
+      ${p.rushing?.yds ? 'RUSH ' + p.rushing.yds + 'yds/' + (p.rushing.td||0) + 'td ' : ''}
+      ${p.receiving?.yds ? 'REC ' + p.receiving.yds + 'yds/' + (p.receiving.td||0) + 'td ' : ''}
+      ${p.defense?.tot ? 'TKL ' + p.defense.tot + ' ' : ''}
+      ${p.defense?.sacks ? 'SACK ' + p.defense.sacks + ' ' : ''}
+      ${p.defense?.ints ? 'INT ' + p.defense.ints + ' ' : ''}</div>`).join('') || '<div style="color:var(--wht3);">No stats yet</div>'}
+  `;
+  document.getElementById('team-modal').classList.add('open');
+}
+
+// ── Schedule ──
+function renderSchedule() {
+  const upcoming = Object.entries(scheduleData)
+    .filter(([id,s]) => s && s.teamA && s.teamB)
+    .sort((a,b) => (a[1].date||'').localeCompare(b[1].date||''));
+  const results = Object.entries(gamesData).filter(([id,g]) => g && g.teamB).sort((a,b) => (b[1].ts||0) - (a[1].ts||0));
+
+  const upcomingHtml = upcoming.map(([id,s]) => `
+    <div class="sched-row upcoming">
+      <div class="sched-teams">${teamLogoOrDot(s.teamA,20)}${teamAbbr(s.teamA)}
+        <span style="color:var(--wht3);">@</span>
+        ${teamLogoOrDot(s.teamB,20)}${teamAbbr(s.teamB)}
+      </div>
+      <div class="sched-score tbd">UPCOMING</div>
+      <div class="sched-date">${s.date ? new Date(s.date + 'T00:00').toLocaleDateString() : ''}</div>
+    </div>`).join('');
+
+  const resultsHtml = results.map(([id,g]) => `
+    <div class="sched-row" onclick="openBoxScore('${id}')">
+      <div class="sched-teams">${teamLogoOrDot(g.teamA,20)}${teamAbbr(g.teamA)}
+        <span style="color:var(--wht3);">@</span>
+        ${teamLogoOrDot(g.teamB,20)}${teamAbbr(g.teamB)}
+      </div>
+      <div class="sched-score">${g.scores?.a ?? '—'} - ${g.scores?.b ?? '—'}</div>
+      <div class="sched-date">${g.ts ? new Date(g.ts).toLocaleDateString() : ''}</div>
+    </div>`).join('');
+
+  let html = '';
+  if(upcomingHtml) html += '<div class="sched-section-lbl">Upcoming</div>' + upcomingHtml;
+  html += '<div class="sched-section-lbl">Results</div>' + (resultsHtml || '<div style="color:var(--wht3);padding:16px 0;">No games played yet</div>');
+  document.getElementById('schedule-list').innerHTML = html;
+}
+
+// ── Admin ──
+let adminPasskey = null;
+let adminUnlocked = false;
+let editingSlug = null;
+
+async function unlockAdmin() {
+  const pass = document.getElementById('admin-passphrase').value;
+  const statusEl = document.getElementById('admin-lock-status');
+  if(!currentLeagueId) { statusEl.textContent = 'Load a league first.'; return; }
+  if(!pass) { statusEl.textContent = 'Enter this league\'s passkey.'; return; }
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Checking...';
+  try {
+    // Claims the league for this passkey if it has no owner yet — no-ops
+    // (permission denied, caught below) if it's already owned by someone else.
+    try {
+      await fbDb.ref(`leagues/${currentLeagueId}/secret`).set(pass);
+    } catch(e) {
+      if(e.code !== 'PERMISSION_DENIED') throw e;
+    }
+    adminPasskey = pass;
+    adminUnlocked = true;
+    document.getElementById('admin-lock-card').style.display = 'none';
+    document.getElementById('admin-panel-card').style.display = 'block';
+    document.getElementById('admin-schedule-card').style.display = 'block';
+    document.getElementById('admin-historical-card').style.display = 'block';
+    document.getElementById('admin-player-career-card').style.display = 'block';
+    if(currentSeasonId) document.getElementById('admin-sched-season').value = currentSeasonId;
+    buildHistoricalCategoryInputs();
+    renderAdminGamesList();
+    buildPasteCatSelect();
+    refreshPlayerLookupList();
+    if(!document.getElementById('pe-seasons').children.length) addPlayerSeasonRow();
+    renderAdminTeams();
+    renderAdminSchedule();
+  } catch(e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = 'Could not verify: ' + (e.message || e);
+  }
+}
+
+function adminResetTeamForm() {
+  editingSlug = null;
+  document.getElementById('admin-team-slug').value = '';
+  document.getElementById('admin-team-slug').disabled = false;
+  document.getElementById('admin-team-name').value = '';
+  document.getElementById('admin-team-abbr').value = '';
+  document.getElementById('admin-team-color').value = '#00e676';
+  document.getElementById('admin-team-logo').value = '';
+  document.getElementById('admin-team-roster').value = '';
+  document.getElementById('admin-save-status').textContent = '';
+}
+
+function slugify(s) {
+  return (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+function rosterToText(roster) {
+  return (roster||[]).map(p => [p.num ?? '', p.name || '', p.pos || '', p.photo || '', p.pid || ''].join(', ').replace(/(,\s*)+$/,'')).join('\n');
+}
+function textToRoster(text) {
+  return (text||'').split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const [num, name, pos, photo, pidRaw] = line.split(',').map(s => (s||'').trim());
+    // Stable identity key: use an explicit override if given, otherwise
+    // derive it from the name so re-saving the same roster doesn't fork it.
+    const pid = pidRaw || slugify(name);
+    return { num: num || null, name: name || '', pos: pos || '', photo: photo || null, pid: pid || null };
+  }).filter(p => p.name);
+}
+
+function adminEditTeam(slug) {
+  const t = teamsData[slug] || {};
+  editingSlug = slug;
+  document.getElementById('admin-team-slug').value = slug;
+  document.getElementById('admin-team-slug').disabled = true; // slug is the key — don't let it change out from under existing games
+  document.getElementById('admin-team-name').value = t.name || '';
+  document.getElementById('admin-team-abbr').value = t.abbr || '';
+  document.getElementById('admin-team-color').value = t.color || '#00e676';
+  document.getElementById('admin-team-logo').value = t.logoUrl || '';
+  document.getElementById('admin-team-roster').value = rosterToText(t.roster);
+  document.getElementById('admin-save-status').textContent = '';
+  switchTab('admin');
+  window.scrollTo(0,0);
+}
+
+async function adminSaveTeam() {
+  const statusEl = document.getElementById('admin-save-status');
+  const slug = (editingSlug || document.getElementById('admin-team-slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-'));
+  const name = document.getElementById('admin-team-name').value.trim();
+  const abbr = document.getElementById('admin-team-abbr').value.trim().toUpperCase();
+  const color = document.getElementById('admin-team-color').value;
+  const logoUrl = document.getElementById('admin-team-logo').value.trim();
+  const roster = textToRoster(document.getElementById('admin-team-roster').value);
+
+  if(!currentLeagueId) { statusEl.textContent = '❌ Load a league first.'; statusEl.style.color = 'var(--red)'; return; }
+  if(!slug || !name) { statusEl.textContent = '❌ Slug and name are required.'; statusEl.style.color = 'var(--red)'; return; }
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Saving...';
+  try {
+    const teamRecord = { secret: adminPasskey, name, abbr: abbr || name.slice(0,3).toUpperCase(), color, logoUrl: logoUrl || null, roster };
+    await fbDb.ref(`leagues/${currentLeagueId}/teams/${slug}`).set(teamRecord);
+    teamsData[slug] = teamRecord;
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = `✅ Saved "${name}"`;
+    renderAdminTeams();
+    renderTeams();
+    renderStandings();
+    adminResetTeamForm();
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') {
+      // Wrong passkey — re-lock rather than let them keep trying blind
+      adminUnlocked = false;
+      adminPasskey = null;
+      document.getElementById('admin-panel-card').style.display = 'none';
+      document.getElementById('admin-lock-card').style.display = 'block';
+      document.getElementById('admin-lock-status').style.color = 'var(--red)';
+      document.getElementById('admin-lock-status').textContent = 'Wrong passkey for this league — try again.';
+      return;
+    }
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Save failed: ' + (e.message || e);
+  }
+}
+
+function renderAdminTeams() {
+  const grid = document.getElementById('admin-teams-grid');
+  if(!grid) return;
+  const slugs = Object.keys(teamsData);
+  grid.innerHTML = slugs.map(slug => {
+    const hasGames = !!standings[slug];
+    return `
+    <div class="team-card" style="position:relative;" onclick="adminEditTeam('${slug}')">
+      <button onclick="event.stopPropagation();adminDeleteTeam('${slug}')" title="${hasGames ? 'Cannot delete — this team already has games recorded' : 'Delete team'}"
+        style="position:absolute;top:6px;right:6px;background:none;border:none;color:${hasGames ? 'var(--blk5)' : 'var(--red)'};font-size:16px;cursor:${hasGames ? 'not-allowed' : 'pointer'};line-height:1;">✕</button>
+      <span class="team-dot" style="background:${teamColor(slug)};display:inline-block;width:16px;height:16px;border-radius:50%;"></span>
+      <div class="tc-name">${teamLabel(slug)}</div>
+      <div class="tc-rec">${slug}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--wht3);">No teams yet — add one above.</div>';
+}
+
+async function adminDeleteTeam(slug) {
+  if(standings[slug]) {
+    alert('Can\'t delete "' + teamLabel(slug) + '" — it already has games recorded. Remove those games first if you really need to remove this team.');
+    return;
+  }
+  if(!confirm('Delete team "' + teamLabel(slug) + '"? This can\'t be undone from here.')) return;
+
+  try {
+    // Soft-delete: overwrite with a tombstone rather than a real Firebase
+    // remove(), since remove() sends no data and can't carry the passkey
+    // needed to pass the write rule. Filtered out on load (see loadLeague).
+    await fbDb.ref(`leagues/${currentLeagueId}/teams/${slug}`).set({ secret: adminPasskey, deleted: true });
+    delete teamsData[slug];
+    renderAdminTeams();
+    renderTeams();
+    renderStandings();
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') {
+      adminUnlocked = false;
+      adminPasskey = null;
+      document.getElementById('admin-panel-card').style.display = 'none';
+      document.getElementById('admin-lock-card').style.display = 'block';
+      document.getElementById('admin-lock-status').style.color = 'var(--red)';
+      document.getElementById('admin-lock-status').textContent = 'Wrong passkey for this league — try again.';
+      return;
+    }
+    alert('Delete failed: ' + (e.message || e));
+  }
+}
+
+async function adminAddScheduledGame() {
+  const statusEl = document.getElementById('admin-sched-status');
+  const seasonId = document.getElementById('admin-sched-season').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const teamA = document.getElementById('admin-sched-a').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const teamB = document.getElementById('admin-sched-b').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const date = document.getElementById('admin-sched-date').value;
+
+  if(!seasonId || !teamA || !teamB) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Season ID and both team slugs are required.';
+    return;
+  }
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Adding...';
+  try {
+    const scheduleId = `${date || 'tbd'}-${teamA}-vs-${teamB}`;
+    await fbDb.ref(`leagues/${currentLeagueId}/seasons/${seasonId}/schedule/${scheduleId}`).set({
+      secret: adminPasskey, teamA, teamB, date: date || null
+    });
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = '✅ Added to schedule';
+    document.getElementById('admin-sched-a').value = '';
+    document.getElementById('admin-sched-b').value = '';
+    document.getElementById('admin-sched-date').value = '';
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') {
+      adminUnlocked = false;
+      adminPasskey = null;
+      document.getElementById('admin-panel-card').style.display = 'none';
+      document.getElementById('admin-schedule-card').style.display = 'none';
+      document.getElementById('admin-lock-card').style.display = 'block';
+      document.getElementById('admin-lock-status').style.color = 'var(--red)';
+      document.getElementById('admin-lock-status').textContent = 'Wrong passkey for this league — try again.';
+      return;
+    }
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Failed: ' + (e.message || e);
+  }
+}
+
+function renderAdminSchedule() {
+  const list = document.getElementById('admin-schedule-list');
+  if(!list) return;
+  const seasonId = document.getElementById('admin-sched-season').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-') || currentSeasonId;
+  const entries = Object.entries(scheduleData);
+  list.innerHTML = entries.map(([id,s]) => `
+    <div class="sched-row upcoming" onclick="adminRemoveScheduledGame('${seasonId}','${id}')" style="cursor:pointer;" title="Click to remove">
+      <div class="sched-teams">${teamAbbr(s.teamA)} @ ${teamAbbr(s.teamB)}</div>
+      <div class="sched-date">${s.date || 'TBD'}</div>
+    </div>`).join('') || '<div style="color:var(--wht3);padding:8px 0;">Nothing scheduled</div>';
+}
+
+async function adminRemoveScheduledGame(seasonId, scheduleId) {
+  if(!confirm('Remove this scheduled game?')) return;
+  try {
+    // Same soft-delete pattern as team deletion — remove() can't carry a passkey.
+    await fbDb.ref(`leagues/${currentLeagueId}/seasons/${seasonId}/schedule/${scheduleId}`).set({ secret: adminPasskey, teamA: null, teamB: null });
+  } catch(e) {
+    alert('Remove failed: ' + (e.message || e));
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// PLAYER DATABASE
+// One index, built once per league load, covering every season. Everything
+// player-facing (directory, profile, admin editor) reads from this rather
+// than re-querying Firebase, so a profile opens instantly and every screen
+// agrees on what a player's career looks like.
+// ══════════════════════════════════════════════════════════════════
+async function refreshPlayerIndex(manual) {
+  if(!fbDb || !currentLeagueId || indexLoading) return;
+  indexLoading = true;
+  const countEl = document.getElementById('pdb-count');
+  if(countEl) countEl.textContent = 'Loading player database...';
+  try {
+    const [pSnap, sSnap] = await Promise.all([
+      fbDb.ref(`leagues/${currentLeagueId}/players`).once('value'),
+      fbDb.ref(`leagues/${currentLeagueId}/seasons`).once('value')
+    ]);
+    playersData = Object.fromEntries(Object.entries(pSnap.val() || {}).filter(([k,v]) => v && !v.deleted));
+    allSeasons = sSnap.val() || {};
+    buildPlayerIndex();
+    populatePlayerFilters();
+    renderPlayers();
+    refreshPlayerLookupList();
+  } catch(e) {
+    if(countEl) countEl.textContent = 'Could not load player database: ' + (e.message || e);
+    console.warn('[GM] player index load failed:', e);
+  } finally {
+    indexLoading = false;
+  }
+}
+
+function seasonLabel(sid) {
+  return allSeasons[sid]?.meta?.label || sid;
+}
+
+function buildPlayerIndex() {
+  playerIndex = {};
+  const ensure = (pid) => {
+    if(!playerIndex[pid]) playerIndex[pid] = { pid, bio:{}, rows:[], name:'', num:null, pos:'', team:null, teams:[], seasons:[] };
+    return playerIndex[pid];
+  };
+
+  // 1. Bio records are the spine — a player exists in the database even with
+  //    zero stats on file, which is what makes "add the player first, type the
+  //    numbers later" possible.
+  Object.entries(playersData).forEach(([pid, b]) => {
+    const e = ensure(pid);
+    e.bio = b;
+    e.name = b.name || '';
+    e.pos = b.pos || '';
+    if(b.num != null && b.num !== '') e.num = b.num;
+    if(b.team) e.fixedTeam = b.team;
+  });
+
+  // 2. Team rosters fill in position/photo for players who only ever showed up
+  //    inside game records.
+  Object.entries(teamsData).forEach(([slug, t]) => {
+    (t.roster || []).forEach(p => {
+      if(!p || !p.pid) return;
+      const e = ensure(p.pid);
+      if(!e.name) e.name = p.name || '';
+      if(!e.pos) e.pos = p.pos || '';
+      if(!e.bio.photo && p.photo) e.bio = { ...e.bio, photo: p.photo };
+      if(e.num == null) e.num = p.num;
+    });
+  });
+
+  // 3. Every season contributes one row per (player, team).
+  Object.entries(allSeasons).forEach(([sid, season]) => {
+    if(!season) return;
+    const units = buildUnitsFromGames(season.games);
+    applyTypedUnits(units, season.playerStats);
+    Object.values(units).forEach(u => {
+      const pid = u.pid || u.idKey;   // legacy entries with no pid still get a page
+      const e = ensure(pid);
+      if(!e.name && u.name) e.name = u.name;
+      e.rows.push({ sid, team:u.team, num:u.num, name:u.name, gp:u.gp, typed:u.typed, cats:u.cats, lastTs:u.lastTs });
+    });
+  });
+
+  Object.values(playerIndex).forEach(e => {
+    e.rows.sort((a,b) => String(a.sid).localeCompare(String(b.sid)) || (a.lastTs - b.lastTs));
+    e.career = {}; STAT_CATS.forEach(c => e.career[c] = {});
+    e.gp = 0;
+    e.rows.forEach(r => {
+      STAT_CATS.forEach(c => mergeStat(e.career[c], r.cats[c]));
+      e.gp += r.gp || 0;
+      if(r.team && !e.teams.includes(r.team)) e.teams.push(r.team);
+      if(!e.seasons.includes(r.sid)) e.seasons.push(r.sid);
+    });
+    const last = e.rows[e.rows.length - 1];
+    if(last) {
+      if(last.num != null) e.num = last.num;
+      e.team = last.team;
+    }
+    if(e.fixedTeam) e.team = e.fixedTeam;   // explicit bio team always wins
+    if(!e.name) e.name = e.pid;
+  });
+}
+
+function populatePlayerFilters() {
+  const seasonSel = document.getElementById('pdb-season');
+  const teamSel = document.getElementById('pdb-team');
+  if(!seasonSel || !teamSel) return;
+  const prevS = seasonSel.value, prevT = teamSel.value;
+  const sids = Object.keys(allSeasons).sort();
+  seasonSel.innerHTML = '<option value="">All seasons</option>' +
+    sids.map(s => `<option value="${s}">${seasonLabel(s)}</option>`).join('');
+  const slugs = new Set(Object.keys(teamsData));
+  Object.values(playerIndex).forEach(e => e.teams.forEach(t => slugs.add(t)));
+  teamSel.innerHTML = '<option value="">All teams</option>' +
+    [...slugs].sort((a,b) => teamLabel(a).localeCompare(teamLabel(b)))
+      .map(s => `<option value="${s}">${teamLabel(s)}</option>`).join('');
+  seasonSel.value = prevS; teamSel.value = prevT;
+}
+
+function refreshPlayerLookupList() {
+  const dl = document.getElementById('pe-lookup-list');
+  if(!dl) return;
+  dl.innerHTML = Object.values(playerIndex)
+    .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+    .map(e => `<option value="${escAttr(e.name)}${e.team ? ' — ' + escAttr(teamAbbr(e.team)) : ''}">`).join('');
+}
+
+function escAttr(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function pdbCatChanged() {
+  pdbSort = { key:null, dir:-1 };
+  renderPlayers();
+}
+function pdbSetSort(key) {
+  if(pdbSort.key === key) pdbSort.dir *= -1;
+  else pdbSort = { key, dir: key === 'name' ? 1 : -1 };
+  renderPlayers();
+}
+
+// A one-line career summary, biggest contributions first — what makes the
+// A–Z directory readable at a glance instead of a wall of zeroes.
+function careerLine(totals) {
+  const bits = [];
+  if(totals.passing?.yds)   bits.push(`${totals.passing.yds.toLocaleString()} pass yds, ${totals.passing.td||0} TD`);
+  if(totals.rushing?.yds)   bits.push(`${totals.rushing.yds.toLocaleString()} rush yds, ${totals.rushing.td||0} TD`);
+  if(totals.receiving?.yds) bits.push(`${totals.receiving.rec||0} rec, ${totals.receiving.yds.toLocaleString()} yds, ${totals.receiving.td||0} TD`);
+  if(totals.defense?.tot)   bits.push(`${totals.defense.tot} tkl${totals.defense.sacks ? ', ' + totals.defense.sacks + ' sk' : ''}${totals.defense.ints ? ', ' + totals.defense.ints + ' int' : ''}`);
+  if(totals.kicking?.fg_att) bits.push(`${totals.kicking.fg_made||0}/${totals.kicking.fg_att} FG`);
+  if(totals.returns?.kr_yds || totals.returns?.pr_yds) bits.push(`${(totals.returns.kr_yds||0)+(totals.returns.pr_yds||0)} ret yds`);
+  return bits.slice(0,3).join(' · ') || '—';
+}
+
+function renderPlayers() {
+  const listEl = document.getElementById('pdb-list');
+  if(!listEl) return;
+  if(!Object.keys(playerIndex).length) {
+    document.getElementById('pdb-count').textContent = '';
+    listEl.innerHTML = '<div style="color:var(--wht3);padding:16px 0;">No players on file yet. Add them under Admin → Player Database, or submit a game from the dashboard.</div>';
+    return;
+  }
+
+  const q = (document.getElementById('pdb-search').value || '').trim().toLowerCase();
+  const cat = document.getElementById('pdb-cat').value;
+  const seasonFilter = document.getElementById('pdb-season').value;
+  const teamFilter = document.getElementById('pdb-team').value;
+  const filtered = !!(seasonFilter || teamFilter);
+
+  let entries = Object.values(playerIndex).map(e => {
+    const rows = filtered
+      ? e.rows.filter(r => (!seasonFilter || r.sid === seasonFilter) && (!teamFilter || r.team === teamFilter))
+      : e.rows;
+    if(filtered && !rows.length) return null;
+    let totals = e.career, gp = e.gp;
+    if(filtered) {
+      totals = {}; STAT_CATS.forEach(c => totals[c] = {});
+      gp = 0;
+      rows.forEach(r => { STAT_CATS.forEach(c => mergeStat(totals[c], r.cats[c])); gp += r.gp || 0; });
+    }
+    const teams = filtered ? [...new Set(rows.map(r => r.team).filter(Boolean))] : e.teams;
+    const seasons = filtered ? [...new Set(rows.map(r => r.sid))] : e.seasons;
+    return { e, totals, gp, teams, seasons };
+  }).filter(Boolean);
+
+  if(q) {
+    entries = entries.filter(({e, teams}) =>
+      (e.name || '').toLowerCase().includes(q) ||
+      (e.pos || '').toLowerCase().includes(q) ||
+      teams.some(t => `${teamLabel(t)} ${teamAbbr(t)} ${t}`.toLowerCase().includes(q))
+    );
+  }
+
+  let html;
+  if(cat === 'all') {
+    const key = pdbSort.key || 'name';
+    const dir = pdbSort.key ? pdbSort.dir : 1;
+    const val = ({e, gp, seasons}) => ({
+      name: (e.name||'').toLowerCase(), pos: (e.pos||'').toLowerCase(),
+      team: teamLabel(e.team||'').toLowerCase(), seasons: seasons.length, gp
+    })[key];
+    entries.sort((a,b) => { const x = val(a), y = val(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+
+    const th = (k,label,numeric) => `<th class="sortable${pdbSort.key===k?' sorted':''}${numeric?' num-col':''}" onclick="pdbSetSort('${k}')">${label}</th>`;
+    html = `<table><thead><tr>${th('name','Player')}${th('pos','Pos')}${th('team','Team')}${th('seasons','Sns',true)}${th('gp','GP',true)}<th>Career</th></tr></thead><tbody>` +
+      entries.map(({e, gp, teams, seasons, totals}) => `
+        <tr>
+          <td><span class="player-link" onclick="openPlayerById('${escAttr(e.pid)}')">${e.num != null && e.num !== '' ? '#' + e.num + ' ' : ''}${e.name}</span></td>
+          <td>${e.pos ? `<span class="pos-badge">${e.pos}</span>` : ''}</td>
+          <td><div class="team-cell">${teams.slice(0,3).map(t => teamLogoOrDot(t,18)).join('')}<span style="color:var(--wht3);">${teams.map(t => teamAbbr(t)).join(', ') || '—'}</span></div></td>
+          <td class="num-col">${seasons.length}</td>
+          <td class="num-col">${gp || '—'}</td>
+          <td style="color:var(--wht3);">${careerLine(totals)}</td>
+        </tr>`).join('') + '</tbody></table>';
+  } else {
+    const cfg = STAT_FIELDS[cat];
+    const cols = [...cfg.fields.map(([k,l]) => ({k,l,derived:null})), ...cfg.derived.map(([k,l,fn,dp]) => ({k,l,derived:fn,dp}))];
+    let rows = entries.filter(({totals}) => statHasAny(totals[cat]));
+    const key = pdbSort.key || cfg.primary;
+    const dir = pdbSort.key ? pdbSort.dir : -1;
+    const cellVal = (r, k) => {
+      if(k === 'name') return (r.e.name||'').toLowerCase();
+      if(k === 'gp') return r.gp;
+      const col = cols.find(c => c.k === k);
+      if(col && col.derived) { const v = col.derived(r.totals[cat]); return v == null ? -Infinity : v; }
+      return r.totals[cat][k] || 0;
+    };
+    rows.sort((a,b) => { const x = cellVal(a,key), y = cellVal(b,key); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+
+    const th = (k,label,numeric) => `<th class="sortable${pdbSort.key===k?' sorted':''}${numeric?' num-col':''}" onclick="pdbSetSort('${k}')">${label}</th>`;
+    html = `<table><thead><tr><th class="rank-col">#</th>${th('name','Player')}<th>Team</th>${th('gp','GP',true)}` +
+      cols.map(c => th(c.k, c.l, true)).join('') + '</tr></thead><tbody>' +
+      rows.map((r,i) => `
+        <tr>
+          <td class="rank-col">${i+1}</td>
+          <td><span class="player-link" onclick="openPlayerById('${escAttr(r.e.pid)}')">${r.e.num != null && r.e.num !== '' ? '#' + r.e.num + ' ' : ''}${r.e.name}</span></td>
+          <td style="color:var(--wht3);">${r.teams.map(t => teamAbbr(t)).join(', ') || '—'}</td>
+          <td class="num-col">${r.gp || '—'}</td>
+          ${cols.map(c => `<td class="num-col${c.k===cfg.primary?' primary-col':''}">${c.derived ? fmtNum(c.derived(r.totals[cat]), c.dp) : (r.totals[cat][c.k] || 0)}</td>`).join('')}
+        </tr>`).join('') + '</tbody></table>';
+    entries = rows;
+  }
+
+  document.getElementById('pdb-count').textContent =
+    `${entries.length} player${entries.length === 1 ? '' : 's'}` +
+    (filtered ? ` · ${seasonFilter ? seasonLabel(seasonFilter) : 'all seasons'}${teamFilter ? ' · ' + teamLabel(teamFilter) : ''}` : ' · career totals');
+  listEl.innerHTML = html;
+}
+
+// ── Player Profile ──
+function openPlayerById(pid) {
+  const e = playerIndex[pid];
+  document.getElementById('player-modal').classList.add('open');
+  if(!e) {
+    document.getElementById('player-modal-title').textContent = 'PLAYER';
+    document.getElementById('player-modal-body').innerHTML = '<div style="color:var(--wht3);">No record found for this player.</div>';
+    return;
+  }
+  renderPlayerProfile(e);
+}
+
+// Kept on the original signature so every existing call site (leaders, box
+// scores, team rosters) still works untouched.
+async function openPlayerModal(teamSlug, num, pid) {
+  pid = pid || null;
+  document.getElementById('player-modal').classList.add('open');
+  document.getElementById('player-modal-title').textContent = 'Loading...';
+  document.getElementById('player-modal-body').innerHTML = '<div style="color:var(--wht3);">Loading player history...</div>';
+
+  if(!Object.keys(playerIndex).length) await refreshPlayerIndex();
+
+  let entry = pid ? playerIndex[pid] : null;
+  if(!entry) entry = playerIndex[`noid__${teamSlug}__${num}`];
+  if(!entry && num != null) {
+    entry = Object.values(playerIndex).find(e =>
+      String(e.num) === String(num) && e.teams.includes(teamSlug));
+  }
+  if(!entry) {
+    document.getElementById('player-modal-title').textContent = `#${num ?? ''}`;
+    document.getElementById('player-modal-body').innerHTML = '<div style="color:var(--wht3);">No recorded stats yet for this player.</div>';
+    return;
+  }
+  renderPlayerProfile(entry);
+}
+
+function renderPlayerProfile(e) {
+  const bio = e.bio || {};
+  document.getElementById('player-modal-title').textContent = e.name || 'PLAYER';
+
+  const initials = (e.name || '?').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const photoHtml = bio.photo
+    ? `<img class="pp-photo" src="${escAttr(bio.photo)}" onerror="this.outerHTML='<div class=\\'pp-photo-ph\\'>${initials}</div>'">`
+    : `<div class="pp-photo-ph">${initials}</div>`;
+
+  const metaBits = [];
+  if(e.pos) metaBits.push(`<b>Position:</b> ${e.pos}`);
+  if(e.num != null && e.num !== '') metaBits.push(`<b>No.</b> ${e.num}`);
+  const size = [bio.ht, bio.wt ? bio.wt + 'lb' : null].filter(Boolean).join(', ');
+  const line2 = [];
+  if(size) line2.push(size);
+  if(bio.born) line2.push(`Born ${bio.born}`);
+  if(bio.college) line2.push(`College: ${bio.college}`);
+  if(bio.hometown) line2.push(bio.hometown);
+
+  const spanTxt = e.seasons.length
+    ? `${seasonLabel(e.seasons[0])}${e.seasons.length > 1 ? '–' + seasonLabel(e.seasons[e.seasons.length-1]) : ''} · ${e.seasons.length} season${e.seasons.length===1?'':'s'}`
+    : 'No seasons on file';
+
+  let html = `<div class="pp-head">
+    ${photoHtml}
+    <div style="flex:1;min-width:220px;">
+      <div class="pp-name">${e.name || 'Unknown Player'}</div>
+      <div class="pp-meta">
+        ${metaBits.join(' &nbsp;·&nbsp; ')}
+        ${e.team ? `<div style="display:flex;align-items:center;gap:6px;margin-top:2px;"><b>Team:</b> ${teamLogoOrDot(e.team,16)} <span class="team-link" onclick="closeModal('player-modal');openTeamModal('${e.team}')">${teamLabel(e.team)}</span></div>` : ''}
+        ${line2.length ? `<div>${line2.join(' &nbsp;·&nbsp; ')}</div>` : ''}
+        <div style="color:var(--wht3);">${spanTxt}${e.gp ? ' · ' + e.gp + ' GP' : ''}${e.teams.length > 1 ? ' · ' + e.teams.map(t => teamAbbr(t)).join(', ') : ''}</div>
+        ${bio.status === 'inactive' ? '<div style="color:var(--yellow);font-size:12px;">Inactive / retired</div>' : ''}
+      </div>
+      ${bio.note ? `<div style="color:var(--wht3);font-size:12px;margin-top:8px;">${bio.note}</div>` : ''}
+      ${adminUnlocked ? `<div class="pp-actions"><button class="tb-btn" onclick="closeModal('player-modal');adminLoadPlayer('${escAttr(e.pid)}')">EDIT THIS PLAYER</button></div>` : ''}
+    </div>
+  </div>`;
+
+  // Summary box — the player's most productive category, latest season vs career.
+  const activeCats = STAT_CATS.filter(c => statHasAny(e.career[c]));
+  if(activeCats.length) {
+    const main = activeCats.slice().sort((a,b) =>
+      (e.career[b][STAT_FIELDS[b].primary] || 0) - (e.career[a][STAT_FIELDS[a].primary] || 0))[0];
+    const cfg = STAT_FIELDS[main];
+    const lastSid = e.seasons[e.seasons.length - 1];
+    const lastTotals = {};
+    e.rows.filter(r => r.sid === lastSid).forEach(r => mergeStat(lastTotals, r.cats[main]));
+    const cols = [...cfg.fields, ...cfg.derived.map(d => [d[0], d[1]])];
+    const cell = (src, k) => {
+      const d = cfg.derived.find(x => x[0] === k);
+      return d ? fmtNum(d[2](src), d[3]) : (src[k] || 0);
+    };
+    html += `<div class="pp-summary"><table><thead><tr><th>SUMMARY (${cfg.label})</th>${cols.map(([k,l]) => `<th class="num-col">${l}</th>`).join('')}</tr></thead><tbody>
+      ${statHasAny(lastTotals) ? `<tr><td>${seasonLabel(lastSid)}</td>${cols.map(([k]) => `<td class="num-col">${cell(lastTotals,k)}</td>`).join('')}</tr>` : ''}
+      <tr class="career-row"><td>Career</td>${cols.map(([k]) => `<td class="num-col">${cell(e.career[main],k)}</td>`).join('')}</tr>
+    </tbody></table></div>`;
+  }
+
+  // Season-by-season tables, one per category the player has numbers in.
+  STAT_CATS.forEach(cat => {
+    const rows = e.rows.filter(r => statHasAny(r.cats[cat]));
+    if(!rows.length) return;
+    const cfg = STAT_FIELDS[cat];
+    const cols = [...cfg.fields, ...cfg.derived.map(d => [d[0], d[1]])];
+    const cell = (src, k) => {
+      const d = cfg.derived.find(x => x[0] === k);
+      return d ? fmtNum(d[2](src), d[3]) : (src[k] || 0);
+    };
+    html += `<div class="pp-cat-hdr"><h3>${cfg.label.toUpperCase()}</h3>
+      <span class="pp-cat-sub">${rows.length} season row${rows.length===1?'':'s'}</span></div>
+      <div class="table-scroll"><table class="pp-table"><thead><tr><th>SEASON</th><th>TEAM</th><th class="num-col">GP</th>${cols.map(([k,l]) => `<th class="num-col">${l}</th>`).join('')}</tr></thead><tbody>`;
+    rows.forEach(r => {
+      html += `<tr>
+        <td>${seasonLabel(r.sid)} ${r.typed ? '<span class="src-badge src-typed" title="Hand-entered season total">M</span>' : ''}</td>
+        <td><div class="team-cell">${teamLogoOrDot(r.team,16)}<span class="team-link" onclick="closeModal('player-modal');openTeamModal('${r.team}')">${teamAbbr(r.team)}</span></div></td>
+        <td class="num-col">${r.gp || '—'}</td>
+        ${cols.map(([k]) => `<td class="num-col">${cell(r.cats[cat],k)}</td>`).join('')}
+      </tr>`;
+    });
+    html += `<tr class="career-row"><td>CAREER</td><td>${[...new Set(rows.map(r => r.team))].length} tm</td><td class="num-col">${rows.reduce((s,r) => s + (r.gp||0), 0) || '—'}</td>${cols.map(([k]) => `<td class="num-col">${cell(e.career[cat],k)}</td>`).join('')}</tr>`;
+    html += `</tbody></table></div>`;
+  });
+
+  if(!activeCats.length) html += '<div style="color:var(--wht3);padding:16px 0;">No recorded stats yet.</div>';
+  html += `<div style="color:var(--wht3);font-size:11px;margin-top:18px;border-top:1px solid var(--blk5);padding-top:8px;">
+    Rows marked <span class="src-badge src-typed">M</span> are hand-entered season totals. Unmarked rows are summed from individual game records.</div>`;
+
+  document.getElementById('player-modal-body').innerHTML = html;
+}
+
+// ── Historical stats backfill ──
+// Builds one textarea per stat category for both teams, using the exact
+// same columns as LEADER_TABLE_CONFIG so a pasted line maps directly onto
+// what Stat Leaders / player profiles actually display — nothing entered
+// here goes anywhere else, so there's no format to keep in sync elsewhere.
+function buildHistoricalCategoryInputs() {
+  ['a','b'].forEach(side => {
+    const container = document.getElementById(`hist-${side}-cats`);
+    container.innerHTML = Object.entries(LEADER_TABLE_CONFIG).map(([catKey, cfg]) => {
+      const cols = cfg.columns.map(([k,label]) => label).join(', ');
+      return `<div class="field-group" style="margin-bottom:8px;">
+        <label style="color:var(--wht3);font-size:11px;">${cfg.label.toUpperCase()} — one per line: number, name, ${cols}</label>
+        <textarea id="hist-${side}-${catKey}" rows="2" class="tb-input" style="width:100%;font-family:monospace;font-size:12px;resize:vertical;"></textarea>
+      </div>`;
+    }).join('');
+  });
+}
+
+function parseHistoricalStatLines(text, catKey) {
+  const cfg = LEADER_TABLE_CONFIG[catKey];
+  return (text||'').split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const parts = line.split(',').map(s => (s||'').trim());
+    const [num, name, ...vals] = parts;
+    if(!name) return null;
+    const entry = { num: num || null, name, pid: slugify(name) || null };
+    cfg.columns.forEach(([k], i) => { entry[k] = Number(vals[i]) || 0; });
+    return entry;
+  }).filter(Boolean);
+}
+
+function statArrayToLines(arr, catKey) {
+  const cfg = LEADER_TABLE_CONFIG[catKey];
+  return toArray(arr).map(p => {
+    const vals = cfg.columns.map(([k]) => p[k] || 0);
+    return [p.num ?? '', p.name || '', ...vals].join(', ');
+  }).join('\n');
+}
+
+async function loadHistoricalGameForEditing() {
+  const statusEl = document.getElementById('admin-hist-status');
+  const seasonId = document.getElementById('hist-season').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const gameId = document.getElementById('hist-game-id').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+
+  if(!currentLeagueId) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Load a league first.'; return; }
+  if(!seasonId || !gameId) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Enter both Season ID and Game ID to load.'; return; }
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Loading...';
+  try {
+    const snap = await fbDb.ref(`leagues/${currentLeagueId}/seasons/${seasonId}/games/${gameId}`).once('value');
+    const g = snap.val();
+    if(!g) {
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = `❌ No entry found with that Season ID + Game ID — check them, or just fill in fresh.`;
+      return;
+    }
+    document.getElementById('hist-team-a').value = g.teamA || '';
+    document.getElementById('hist-team-b').value = g.teamB || '';
+    document.getElementById('hist-score-a').value = g.scores?.a ?? '';
+    document.getElementById('hist-score-b').value = g.scores?.b ?? '';
+    document.getElementById('hist-date').value = g.ts ? new Date(g.ts).toISOString().slice(0,10) : '';
+    Object.keys(LEADER_TABLE_CONFIG).forEach(cat => {
+      document.getElementById(`hist-a-${cat}`).value = statArrayToLines(g.stats?.a?.[cat], cat);
+      document.getElementById(`hist-b-${cat}`).value = statArrayToLines(g.stats?.b?.[cat], cat);
+    });
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = `✅ Loaded "${gameId}" — edit below, then Save to overwrite it.`;
+  } catch(e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Load failed: ' + (e.message || e);
+  }
+}
+
+// ── Game record management ──
+// Lists every game in the loaded season so a bad import can be corrected or
+// removed without going into the Firebase console.
+function renderAdminGamesList() {
+  const el = document.getElementById('admin-games-list');
+  if(!el) return;
+  const entries = Object.entries(gamesData)
+    .filter(([id,g]) => g && g.teamA)
+    .sort((a,b) => (b[1].ts||0) - (a[1].ts||0));
+  el.innerHTML = entries.map(([id,g]) => `
+    <div class="sched-row" style="gap:10px;">
+      <div style="flex:1;cursor:pointer;min-width:0;" onclick="adminLoadGameById('${escAttr(id)}')" title="Load this game for editing">
+        <div class="sched-teams">
+          ${teamLogoOrDot(g.teamA,18)}${teamAbbr(g.teamA)}
+          <span style="color:var(--wht3);">${g.teamB ? 'vs' : '· season totals, no opponent'}</span>
+          ${g.teamB ? teamLogoOrDot(g.teamB,18) + teamAbbr(g.teamB) : ''}
+        </div>
+        <div style="color:var(--wht3);font-size:10px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;">${id}</div>
+      </div>
+      <div class="sched-score">${g.scores ? (g.scores.a ?? '—') + '-' + (g.scores.b ?? '—') : ''}</div>
+      <div class="sched-date">${g.ts ? new Date(g.ts).toLocaleDateString() : ''}</div>
+      <button class="pe-del" style="margin:0;" onclick="event.stopPropagation();adminDeleteGame('${escAttr(id)}')" title="Delete this game">✕</button>
+    </div>`).join('') || '<div style="color:var(--wht3);padding:8px 0;">No games in this season.</div>';
+}
+
+function adminLoadGameById(gameId) {
+  document.getElementById('hist-season').value = currentSeasonId || '';
+  document.getElementById('hist-game-id').value = gameId;
+  loadHistoricalGameForEditing();
+  const card = document.getElementById('admin-historical-card');
+  if(card && card.scrollIntoView) card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function adminDeleteGame(gameId) {
+  const g = gamesData[gameId];
+  if(!g) return;
+  const label = `${teamAbbr(g.teamA)}${g.teamB ? ' vs ' + teamAbbr(g.teamB) : ''}`;
+  if(!confirm(`Delete "${label}"?\n\nGame ID: ${gameId}\n\nStandings and every player's stats replay from raw game records, so they'll correct themselves immediately. This can't be undone from here.`)) return;
+  const statusEl = document.getElementById('admin-hist-status');
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Deleting...';
+  try {
+    // Tombstone rather than remove() — a removal sends no data and so can't
+    // carry the passkey the write rule requires. Filtered out on load.
+    await fbDb.ref(`leagues/${currentLeagueId}/seasons/${currentSeasonId}/games/${gameId}`)
+      .set({ secret: adminPasskey, deleted: true });
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = `✅ Deleted "${gameId}"`;
+    refreshPlayerIndex();
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') { adminRelock(); return; }
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Delete failed: ' + (e.message || e);
+  }
+}
+
+// Swaps everything between the A and B columns — the one-click fix for an
+// import that landed home and away the wrong way round.
+function swapHistoricalTeams() {
+  const swap = (idA, idB) => {
+    const a = document.getElementById(idA), b = document.getElementById(idB);
+    const tmp = a.value; a.value = b.value; b.value = tmp;
+  };
+  swap('hist-team-a', 'hist-team-b');
+  swap('hist-score-a', 'hist-score-b');
+  Object.keys(LEADER_TABLE_CONFIG).forEach(cat => swap(`hist-a-${cat}`, `hist-b-${cat}`));
+  const statusEl = document.getElementById('admin-hist-status');
+  statusEl.style.color = 'var(--yellow)';
+  statusEl.textContent = '⇄ Swapped A and B. The Game ID still spells the old order — clear it to auto-generate a corrected one, then delete the old game below.';
+}
+
+function adminResetHistoricalForm() {
+  document.getElementById('hist-season').value = '';
+  document.getElementById('hist-date').value = '';
+  document.getElementById('hist-game-id').value = '';
+  document.getElementById('hist-team-a').value = '';
+  document.getElementById('hist-score-a').value = '';
+  document.getElementById('hist-team-b').value = '';
+  document.getElementById('hist-score-b').value = '';
+  Object.keys(LEADER_TABLE_CONFIG).forEach(cat => {
+    document.getElementById(`hist-a-${cat}`).value = '';
+    document.getElementById(`hist-b-${cat}`).value = '';
+  });
+  document.getElementById('admin-hist-status').textContent = '';
+}
+
+async function adminSaveHistoricalGame() {
+  const statusEl = document.getElementById('admin-hist-status');
+  const seasonId = document.getElementById('hist-season').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const dateStr  = document.getElementById('hist-date').value;
+  const teamA    = document.getElementById('hist-team-a').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const teamB    = document.getElementById('hist-team-b').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const scoreA   = document.getElementById('hist-score-a').value;
+  const scoreB   = document.getElementById('hist-score-b').value;
+  let gameId     = document.getElementById('hist-game-id').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+
+  if(!currentLeagueId) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Load a league first.'; return; }
+  if(!seasonId || !teamA) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Season ID and Team A slug are required.'; return; }
+
+  if(!gameId) {
+    gameId = `historical-${teamA}${teamB ? '-vs-' + teamB : ''}-${dateStr || seasonId}`;
+  }
+
+  const statsA = {};
+  const statsB = {};
+  let anyStats = false;
+  Object.keys(LEADER_TABLE_CONFIG).forEach(cat => {
+    statsA[cat] = parseHistoricalStatLines(document.getElementById(`hist-a-${cat}`).value, cat);
+    statsB[cat] = parseHistoricalStatLines(document.getElementById(`hist-b-${cat}`).value, cat);
+    if(statsA[cat].length || statsB[cat].length) anyStats = true;
+  });
+
+  const record = {
+    secret: adminPasskey,
+    ts: dateStr ? new Date(dateStr + 'T00:00').getTime() : Date.now(),
+    teamA,
+    teamB: teamB || null,
+    scores: (teamB && scoreA !== '' && scoreB !== '') ? { a: Number(scoreA), b: Number(scoreB) } : null,
+    stats: { a: statsA, b: statsB },
+    aggregateOnly: !teamB
+  };
+
+  if(!anyStats && !record.scores) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Nothing to save — enter at least one stat line or a score.';
+    return;
+  }
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Saving...';
+  try {
+    await fbDb.ref(`leagues/${currentLeagueId}/seasons/${seasonId}/games/${gameId}`).set(JSON.parse(JSON.stringify(record)));
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = `✅ Saved as "${gameId}"`;
+    document.getElementById('hist-game-id').value = gameId;
+    document.getElementById('league-id-input').value = currentLeagueId;
+    loadLeague(seasonId);
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') {
+      adminUnlocked = false;
+      adminPasskey = null;
+      document.getElementById('admin-panel-card').style.display = 'none';
+      document.getElementById('admin-schedule-card').style.display = 'none';
+      document.getElementById('admin-historical-card').style.display = 'none';
+      document.getElementById('admin-lock-card').style.display = 'block';
+      document.getElementById('admin-lock-status').style.color = 'var(--red)';
+      document.getElementById('admin-lock-status').textContent = 'Wrong passkey for this league — try again.';
+      return;
+    }
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Failed: ' + (e.message || e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ADMIN — PLAYER DATABASE EDITOR
+// Typed stats are written to leagues/{L}/seasons/{sid}/playerStats/{pid}__{team}
+// and NOT into game records. That separation is deliberate: hand-entered season
+// totals and dashboard-submitted games would otherwise stack on top of each
+// other for the same season, which is exactly the double-count this avoids.
+// ══════════════════════════════════════════════════════════════════
+let peRowCount = 0;
+let peDeleted = [];   // {sid, key} rows removed during this editing session
+
+function peAutoPid() {
+  const pidEl = document.getElementById('pe-pid');
+  if(pidEl.dataset.locked === '1') return;
+  pidEl.value = slugify(document.getElementById('pe-name').value);
+}
+
+function buildPasteCatSelect() {
+  const sel = document.getElementById('pe-paste-cat');
+  if(!sel) return;
+  sel.innerHTML = STAT_CATS.map(c => `<option value="${c}">${STAT_FIELDS[c].label}</option>`).join('');
+  updatePasteHint();
+}
+
+function updatePasteHint() {
+  const cat = document.getElementById('pe-paste-cat').value;
+  const cfg = STAT_FIELDS[cat];
+  document.getElementById('pe-paste-hint').textContent =
+    'season, team-slug, gp, ' + cfg.fields.map(([k,l]) => l).join(', ');
+}
+
+function addPlayerSeasonRow(data) {
+  data = data || {};
+  const id = 'pes' + (peRowCount++);
+  const container = document.getElementById('pe-seasons');
+  const row = document.createElement('div');
+  row.className = 'pe-row';
+  row.id = id;
+  row.dataset.origSid = data.sid || '';
+  row.dataset.origKey = data.key || '';
+
+  const catsHtml = STAT_CATS.map(cat => {
+    const cfg = STAT_FIELDS[cat];
+    const vals = (data.cats && data.cats[cat]) || {};
+    const filled = statHasAny(vals);
+    return `<details class="cat-details${filled ? ' pe-cat-filled' : ''}"${filled ? ' open' : ''}>
+      <summary>${cfg.label.toUpperCase()}${filled ? ' ✓' : ''}</summary>
+      <div class="cat-inputs">
+        ${cfg.fields.map(([k,label]) => `<div class="ci-field"><label>${label}</label><input type="number" step="any" id="${id}-${cat}-${k}" value="${vals[k] ? vals[k] : ''}"></div>`).join('')}
+      </div>
+    </details>`;
+  }).join('');
+
+  row.innerHTML = `
+    <div class="pe-row-hdr">
+      <div class="field-group"><label>SEASON ID *</label><input type="text" class="tb-input" id="${id}-season" value="${escAttr(data.sid || '')}" placeholder="2025"></div>
+      <div class="field-group"><label>TEAM SLUG *</label><input type="text" class="tb-input" style="width:150px;" id="${id}-team" value="${escAttr(data.team || '')}" placeholder="columbus-lions"></div>
+      <div class="field-group"><label>JERSEY #</label><input type="text" class="tb-input" style="width:70px;" id="${id}-num" value="${escAttr(data.num == null ? '' : data.num)}"></div>
+      <div class="field-group"><label>GP</label><input type="number" class="tb-input" style="width:70px;" id="${id}-gp" value="${data.gp || ''}"></div>
+      <button class="pe-del" onclick="removePlayerSeasonRow('${id}')" title="Remove this season row">✕ Remove</button>
+    </div>
+    ${catsHtml}`;
+  container.appendChild(row);
+  return row;
+}
+
+function removePlayerSeasonRow(id) {
+  const row = document.getElementById(id);
+  if(!row) return;
+  // Rows that already exist in Firebase need an explicit delete on save —
+  // just dropping the DOM node would leave those stats live on the profile.
+  if(row.dataset.origSid && row.dataset.origKey) {
+    peDeleted.push({ sid: row.dataset.origSid, key: row.dataset.origKey });
+  }
+  row.remove();
+}
+
+function readPlayerSeasonRow(row) {
+  const id = row.id;
+  const gv = suffix => document.getElementById(`${id}-${suffix}`);
+  const sid = (gv('season').value || '').trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const team = (gv('team').value || '').trim().toLowerCase().replace(/[^a-z0-9-]/g,'-');
+  const num = (gv('num').value || '').trim() || null;
+  const gp = Number(gv('gp').value) || 0;
+  const cats = {};
+  STAT_CATS.forEach(cat => {
+    const entry = {};
+    let any = false;
+    STAT_FIELDS[cat].fields.forEach(([k]) => {
+      const el = document.getElementById(`${id}-${cat}-${k}`);
+      const v = Number(el.value);
+      if(el.value !== '' && isFinite(v)) { entry[k] = v; if(v) any = true; }
+    });
+    if(any) cats[cat] = entry;
+  });
+  return { row, sid, team, num, gp, cats };
+}
+
+function adminResetPlayerForm() {
+  ['pe-name','pe-pid','pe-pos','pe-num','pe-team','pe-ht','pe-wt','pe-born','pe-college','pe-hometown','pe-photo','pe-note','pe-lookup','pe-paste']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('pe-status').value = 'active';
+  document.getElementById('pe-pid').dataset.locked = '0';
+  document.getElementById('pe-seasons').innerHTML = '';
+  document.getElementById('admin-pcareer-status').textContent = '';
+  peDeleted = [];
+  addPlayerSeasonRow();
+}
+
+function adminLoadPlayerFromLookup() {
+  const raw = (document.getElementById('pe-lookup').value || '').split(' — ')[0].trim().toLowerCase();
+  const statusEl = document.getElementById('admin-pcareer-status');
+  if(!raw) return;
+  const match = Object.values(playerIndex).find(e => (e.name || '').toLowerCase() === raw)
+    || Object.values(playerIndex).find(e => (e.name || '').toLowerCase().includes(raw))
+    || playerIndex[slugify(raw)];
+  if(!match) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `❌ No player found matching "${raw}". Fill in the form below to create them.`;
+    return;
+  }
+  adminLoadPlayer(match.pid);
+}
+
+function adminLoadPlayer(pid) {
+  const e = playerIndex[pid];
+  const statusEl = document.getElementById('admin-pcareer-status');
+  if(!e) { statusEl.style.color = 'var(--red)'; statusEl.textContent = '❌ Player not found in the index.'; return; }
+  adminResetPlayerForm();
+  document.getElementById('pe-seasons').innerHTML = '';
+
+  const bio = e.bio || {};
+  document.getElementById('pe-name').value = e.name || '';
+  document.getElementById('pe-pid').value = e.pid;
+  document.getElementById('pe-pid').dataset.locked = '1';   // never re-slug an existing player out from under their stats
+  document.getElementById('pe-pos').value = e.pos || '';
+  document.getElementById('pe-num').value = e.num == null ? '' : e.num;
+  document.getElementById('pe-team').value = bio.team || e.team || '';
+  document.getElementById('pe-status').value = bio.status || 'active';
+  document.getElementById('pe-ht').value = bio.ht || '';
+  document.getElementById('pe-wt').value = bio.wt || '';
+  document.getElementById('pe-born').value = bio.born || '';
+  document.getElementById('pe-college').value = bio.college || '';
+  document.getElementById('pe-hometown').value = bio.hometown || '';
+  document.getElementById('pe-photo').value = bio.photo || '';
+  document.getElementById('pe-note').value = bio.note || '';
+
+  // Only typed rows are editable here. Game-derived seasons stay where they
+  // are — editing those belongs in the game record itself, not this form.
+  const typedRows = e.rows.filter(r => r.typed);
+  typedRows.forEach(r => addPlayerSeasonRow({ sid:r.sid, team:r.team, num:r.num, gp:r.gp, cats:r.cats, key:`${e.pid}__${r.team}` }));
+  if(!typedRows.length) addPlayerSeasonRow({ team: e.team || '' });
+
+  const gameRows = e.rows.filter(r => !r.typed);
+  statusEl.style.color = 'var(--g2)';
+  statusEl.textContent = `Loaded ${e.name} — ${typedRows.length} typed season row(s)` +
+    (gameRows.length ? `, plus ${gameRows.length} season(s) computed from game records (those stay editable in the game tools above).` : '.');
+
+  switchTab('admin');
+  const card = document.getElementById('admin-player-career-card');
+  if(card && card.scrollIntoView) card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function applyPlayerPaste() {
+  const cat = document.getElementById('pe-paste-cat').value;
+  const cfg = STAT_FIELDS[cat];
+  const text = document.getElementById('pe-paste').value || '';
+  const statusEl = document.getElementById('admin-pcareer-status');
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  if(!lines.length) { statusEl.style.color = 'var(--red)'; statusEl.textContent = '❌ Nothing to paste.'; return; }
+
+  let added = 0, updated = 0;
+  lines.forEach(line => {
+    const parts = line.split(/[,\t]/).map(s => (s || '').trim());
+    const sid = (parts[0] || '').toLowerCase().replace(/[^a-z0-9-]/g,'-');
+    const team = (parts[1] || '').toLowerCase().replace(/[^a-z0-9-]/g,'-');
+    if(!sid || !team) return;
+    const gp = Number(parts[2]) || 0;
+    const vals = parts.slice(3);
+
+    // Reuse an existing row for this season+team rather than creating a second
+    // one, so pasting passing and then rushing for the same year merges.
+    let row = [...document.getElementById('pe-seasons').children].find(r =>
+      (document.getElementById(`${r.id}-season`).value || '').trim().toLowerCase() === sid &&
+      (document.getElementById(`${r.id}-team`).value || '').trim().toLowerCase() === team);
+    if(row) updated++;
+    else { row = addPlayerSeasonRow({ sid, team }); added++; }
+
+    if(gp) document.getElementById(`${row.id}-gp`).value = gp;
+    cfg.fields.forEach(([k], i) => {
+      const v = vals[i];
+      if(v === undefined || v === '') return;
+      const n = Number(String(v).replace(/[^0-9.\-]/g,''));
+      if(isFinite(n)) document.getElementById(`${row.id}-${cat}-${k}`).value = n;
+    });
+    const det = document.getElementById(`${row.id}-${cat}-${cfg.fields[0][0]}`).closest('details');
+    if(det) { det.open = true; det.classList.add('pe-cat-filled'); }
+  });
+
+  if(!added && !updated) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Could not read any rows — each line needs at least: season, team-slug';
+    return;
+  }
+  document.getElementById('pe-paste').value = '';
+  statusEl.style.color = 'var(--g2)';
+  statusEl.textContent = `✅ ${cfg.label}: ${added} row(s) added, ${updated} updated. Check them below, then SAVE PLAYER.`;
+}
+
+function adminRelock(msg) {
+  adminUnlocked = false;
+  adminPasskey = null;
+  ['admin-panel-card','admin-schedule-card','admin-historical-card','admin-player-career-card']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+  document.getElementById('admin-lock-card').style.display = 'block';
+  document.getElementById('admin-lock-status').style.color = 'var(--red)';
+  document.getElementById('admin-lock-status').textContent = msg || 'Wrong passkey for this league — try again.';
+}
+
+async function adminSavePlayer() {
+  const statusEl = document.getElementById('admin-pcareer-status');
+  const name = document.getElementById('pe-name').value.trim();
+  const pid = (document.getElementById('pe-pid').value.trim() || slugify(name)).toLowerCase().replace(/[^a-z0-9-]/g,'-');
+
+  if(!currentLeagueId) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Load a league first.'; return; }
+  if(!name) { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Player name is required.'; return; }
+  if(!pid)  { statusEl.style.color='var(--red)'; statusEl.textContent = '❌ Could not derive a Player ID from that name — enter one manually.'; return; }
+
+  const bio = {
+    secret: adminPasskey,
+    pid, name,
+    pos: document.getElementById('pe-pos').value.trim() || null,
+    num: document.getElementById('pe-num').value.trim() || null,
+    team: (document.getElementById('pe-team').value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-')) || null,
+    status: document.getElementById('pe-status').value,
+    ht: document.getElementById('pe-ht').value.trim() || null,
+    wt: document.getElementById('pe-wt').value.trim() || null,
+    born: document.getElementById('pe-born').value.trim() || null,
+    college: document.getElementById('pe-college').value.trim() || null,
+    hometown: document.getElementById('pe-hometown').value.trim() || null,
+    photo: document.getElementById('pe-photo').value.trim() || null,
+    note: document.getElementById('pe-note').value.trim() || null,
+    ts: Date.now()
+  };
+
+  const allRows = [...document.getElementById('pe-seasons').children].map(readPlayerSeasonRow);
+  if(allRows.some(r => (r.sid && !r.team) || (!r.sid && r.team))) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Every season row needs both a Season ID and a Team Slug.';
+    return;
+  }
+  const parsed = allRows.filter(r => r.sid && r.team);
+
+  statusEl.style.color = 'var(--wht3)';
+  statusEl.textContent = 'Saving...';
+
+  try {
+    await fbDb.ref(`leagues/${currentLeagueId}/players/${pid}`).set(JSON.parse(JSON.stringify(bio)));
+
+    for(const r of parsed) {
+      const key = `${pid}__${r.team}`;
+      // A season that only has typed stats still needs a meta node, or it
+      // never shows up in the season dropdown.
+      const metaSnap = await fbDb.ref(`leagues/${currentLeagueId}/seasons/${r.sid}/meta`).once('value');
+      if(!metaSnap.exists()) {
+        await fbDb.ref(`leagues/${currentLeagueId}/seasons/${r.sid}/meta`).set({ secret: adminPasskey, label: r.sid });
+      }
+      const payload = Object.assign({
+        secret: adminPasskey,
+        pid, name, num: r.num, team: r.team, season: r.sid,
+        gp: r.gp || 0, ts: Date.now()
+      }, r.cats);
+      await fbDb.ref(`leagues/${currentLeagueId}/seasons/${r.sid}/playerStats/${key}`).set(JSON.parse(JSON.stringify(payload)));
+      // Moving a row to a different season or team leaves the old key behind.
+      if(r.row.dataset.origSid && r.row.dataset.origKey &&
+         (r.row.dataset.origSid !== r.sid || r.row.dataset.origKey !== key)) {
+        await fbDb.ref(`leagues/${currentLeagueId}/seasons/${r.row.dataset.origSid}/playerStats/${r.row.dataset.origKey}`)
+          .set({ secret: adminPasskey, deleted: true });
+      }
+      r.row.dataset.origSid = r.sid;
+      r.row.dataset.origKey = key;
+    }
+
+    for(const d of peDeleted) {
+      // Soft-delete, same pattern as teams/schedule — remove() carries no passkey.
+      await fbDb.ref(`leagues/${currentLeagueId}/seasons/${d.sid}/playerStats/${d.key}`)
+        .set({ secret: adminPasskey, deleted: true });
+    }
+    peDeleted = [];
+
+    // Keep team rosters in step so the player also shows on their team page,
+    // but only for teams that already exist — a typo'd slug shouldn't quietly
+    // create a phantom team.
+    const rosterTeams = [...new Set(parsed.map(r => r.team).concat(bio.team ? [bio.team] : []))].filter(t => teamsData[t]);
+    for(const slug of rosterTeams) {
+      try {
+        const t = teamsData[slug];
+        const roster = (t.roster || []).filter(p => p.pid !== pid);
+        const rowForTeam = parsed.filter(r => r.team === slug).pop();
+        roster.push({ num: (rowForTeam && rowForTeam.num) || bio.num || null, name, pos: bio.pos || '', photo: bio.photo || null, pid });
+        await fbDb.ref(`leagues/${currentLeagueId}/teams/${slug}`).set(Object.assign({}, t, { secret: adminPasskey, roster }));
+        teamsData[slug] = Object.assign({}, t, { roster });
+      } catch(err) {
+        console.warn('[GM] roster sync skipped for', slug, err.message);
+      }
+    }
+
+    statusEl.style.color = 'var(--g2)';
+    statusEl.textContent = `✅ Saved ${name} — ${parsed.length} season row(s).`;
+    await refreshPlayerIndex();
+    renderTeams();
+  } catch(e) {
+    if(e.code === 'PERMISSION_DENIED') { adminRelock(); return; }
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '❌ Save failed: ' + (e.message || e);
+  }
+}
+
+function openBoxScore(gameId) {
+  const g = gamesData[gameId];
+  if(!g) return;
+  document.getElementById('box-title').textContent = `${teamAbbr(g.teamA)} ${g.scores?.a ?? 0} — ${g.scores?.b ?? 0} ${teamAbbr(g.teamB)}`;
+  const statBlock = (side, slug) => {
+    const st = g.stats?.[side] || {};
+    const cats = [
+      ['PASSING', st.passing, p => `${p.cmp||0}/${p.att||0}, ${p.yds||0}yds, ${p.td||0}td, ${p.int||0}int`],
+      ['RUSHING', st.rushing, p => `${p.car||0}car, ${p.yds||0}yds, ${p.td||0}td`],
+      ['RECEIVING', st.receiving, p => `${p.rec||0}rec, ${p.yds||0}yds, ${p.td||0}td`],
+      ['DEFENSE', st.defense, p => `${p.tot||0}tkl, ${p.sacks||0}sack, ${p.ints||0}int, ${p.pbu||0}pbu`],
+    ];
+    return `<div class="stat-cat-lbl">${teamLabel(slug)}</div>` + cats.map(([label, arr, fmt]) => {
+      const list = toArray(arr).filter(p => p && p.name);
+      if(!list.length) return '';
+      return `<div style="font-size:12px;color:var(--wht3);margin-top:6px;">${label}</div>` +
+        list.map(p => `<div style="font-size:13px;padding:2px 0;"><span class="player-link" onclick="closeModal('box-modal');openPlayerModal('${slug}','${p.num}','${p.pid||''}')">${p.name}</span> — ${fmt(p)}</div>`).join('');
+    }).join('');
+  };
+  document.getElementById('box-body').innerHTML = statBlock('a', g.teamA) + statBlock('b', g.teamB);
+  document.getElementById('box-modal').classList.add('open');
+}
+</script>
+</body>
+</html>
