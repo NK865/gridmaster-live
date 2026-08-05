@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Index — GridMaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eceef0;
+  --card:#ffffff;
+  --ink:#14181c;
+  --ink-2:#5a646e;
+  --ink-3:#8a939c;
+  --rule:#d3d8dd;
+  --rule-2:#e6e9ec;
+  --accent:#0d5c63;
+  --accent-2:#0f6f78;
+  --accent-soft:#e0efef;
+  --calc-bg:#f5f7f8;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:13px;line-height:1.4;
+  min-height:100vh;padding-bottom:60px;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+
+#topbar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:9px 18px;background:var(--ink);color:#f2f4f6;
+  border-bottom:2px solid var(--accent);
+}
+#topbar h1{
+  font-family:var(--cond);font-size:17px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;line-height:1.1;
+}
+#topbar .sub{font-family:var(--mono);font-size:10.5px;color:#9aa5b0;letter-spacing:.04em}
+#topbar .spacer{flex:1}
+.hublink{
+  font-size:12px;color:#e6eaee;border:1px solid #3a444e;border-radius:3px;padding:5px 11px;
+}
+.hublink:hover{background:#2a333c;border-color:#55616d}
+
+.wrap{max-width:1180px;margin:0 auto;padding:16px 18px}
+
+/* ---------- directory ---------- */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.filters input,.filters select{
+  background:#fff;border:1px solid var(--rule);color:var(--ink);
+  border-radius:3px;padding:7px 9px;font-size:13px;font-family:var(--sans);
+}
+.filters input{flex:1;min-width:200px}
+.filters input:focus,.filters select:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+
+.dircount{
+  font-family:var(--cond);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;margin-bottom:8px;
+}
+.dirgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:7px}
+.pcard{
+  background:var(--card);border:1px solid var(--rule);border-radius:4px;padding:9px 11px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;cursor:pointer;
+}
+.pcard:hover{border-color:var(--accent);background:var(--accent-soft)}
+.pcard .nm{font-weight:500;font-size:13.5px}
+.pcard .mt{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.pcard .mt b{color:var(--accent);font-weight:600}
+
+/* ---------- profile ---------- */
+.backlink{
+  display:inline-block;margin-bottom:12px;font-size:12px;color:var(--ink-2);
+}
+.backlink:hover{color:var(--accent)}
+
+.phead{
+  background:var(--card);border:1px solid var(--rule);border-radius:4px;
+  padding:14px 16px;margin-bottom:12px;border-top:3px solid var(--accent);
+}
+.phead h2{
+  font-family:var(--cond);font-weight:700;font-size:32px;letter-spacing:.01em;
+  line-height:1.05;margin-bottom:7px;
+}
+.posline{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:11px}
+.posbadge{
+  font-family:var(--mono);font-size:10.5px;font-weight:500;
+  background:var(--calc-bg);color:var(--ink-2);border:1px solid var(--rule);
+  border-radius:10px;padding:2px 8px;
+}
+.posbadge.main{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.bio{display:flex;gap:24px;flex-wrap:wrap;font-size:13px;color:var(--ink)}
+.bio .lbl{
+  font-family:var(--cond);font-size:9.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:1px;
+}
+.bio .awards{white-space:pre-line}
+
+.summary{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.scard{
+  background:var(--card);border:1px solid var(--rule);border-radius:4px;
+  padding:9px 15px;min-width:84px;text-align:center;
+}
+.scard .v{font-family:var(--mono);font-weight:600;font-size:21px;color:var(--accent);line-height:1.15}
+.scard .k{
+  font-family:var(--cond);font-size:9.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-3);margin-top:1px;
+}
+.summary .note{align-self:center;color:var(--ink-3);font-size:12.5px}
+
+section.stat{margin-bottom:18px}
+section.stat > h3{
+  font-family:var(--cond);font-size:13px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-2);margin-bottom:6px;
+  padding-bottom:4px;border-bottom:2px solid var(--accent);
+}
+section.stat h4{
+  font-family:var(--cond);font-size:10.5px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin:11px 0 4px;
+}
+.tblwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:4px;background:var(--card)}
+table.st{border-collapse:separate;border-spacing:0;width:100%;font-family:var(--mono);font-size:12px;white-space:nowrap}
+table.st th{
+  background:var(--ink);color:#eef1f3;text-align:right;padding:5px 9px;
+  font-family:var(--cond);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  border-right:1px solid #2b333b;
+}
+table.st th:last-child{border-right:none}
+table.st th.lft,table.st td.lft{text-align:left}
+table.st td{
+  padding:5px 9px;text-align:right;color:var(--ink);
+  border-bottom:1px solid var(--rule-2);border-right:1px solid var(--rule-2);
+}
+table.st td:last-child{border-right:none}
+table.st tbody tr:last-child td{border-bottom:none}
+table.st tbody tr:hover td{background:#f8fafb}
+table.st td.yr{font-weight:500}
+table.st td.lg{color:var(--accent);font-weight:500}
+
+tr.combo td{background:var(--calc-bg);color:var(--ink-2);font-style:italic}
+tr.combo:hover td{background:#eef2f3}
+tr.career td{
+  background:#e3e8ea;font-weight:600;color:var(--ink);
+  border-top:2px solid var(--ink);
+}
+tr.career:hover td{background:#dee4e7}
+
+/* must outrank `table.st td`, which sets text-align:right */
+table.st td.blk{
+  text-align:left;color:var(--ink-3);font-family:var(--sans);
+  font-style:italic;font-size:12px;background:#fafbfc;white-space:nowrap;
+  padding:0;
+}
+/* keeps the message in view no matter how far the table is scrolled sideways */
+table.st td.blk span{display:inline-block;position:sticky;left:0;padding:5px 9px}
+
+.msg{padding:40px 18px;text-align:center;color:var(--ink-3);font-size:13px}
+.msg b{
+  display:block;font-family:var(--cond);font-size:19px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--ink);margin-bottom:5px;
+}
+
+@media (max-width:640px){
+  .phead h2{font-size:25px}
+  .wrap{padding:12px}
+  .bio{gap:14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div>
+    <h1>Player Index</h1>
+    <div class="sub" id="statusline">loading…</div>
+  </div>
+  <span class="spacer"></span>
+  <a class="hublink" href="league_hub.html">← League Hub</a>
+</div>
+
+<div class="wrap" id="view"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+"use strict";
+
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDykV8iQukxY00gDkBllu06bDgqak_6zk4",
+  authDomain:        "gridmaster-live.firebaseapp.com",
+  databaseURL:       "https://gridmaster-live-default-rtdb.firebaseio.com",
+  projectId:         "gridmaster-live",
+  storageBucket:     "gridmaster-live.firebasestorage.app",
+  messagingSenderId: "186706105208",
+  appId:             "1:186706105208:web:0baab38c7a018a86d7ae8d"
+};
+const P_PLAYERS = "players", P_INDEX = "playerIndex", P_ALIAS = "playerAlias";
+
+/* ============================================================
+   SCHEMA — must stay identical to player_stats_entry_fb.html
+   ============================================================ */
+
+const DEF_POS = ["DL","DT","NT","LB","JACK","MAC","DB","CB","S"];
+const DB_POS  = ["JACK","MAC","DB","CB","S"];
+
+const RAW_FIELDS = [
+  "comp","att","passYds","passTD","passInt","passLong","sacked","sackYdsLost",
+  "car","rushYds","rushTD","rushLong","fum","fumLost",
+  "rec","recYds","recTD","recLong",
+  "solo","ast","tfl","tflYds","sack","sackYds",
+  "int","intYds","pd",
+  "ff","fr","frYds",
+  "bk","saf","intTD","fumTD","bkTD",
+  "kr","krYds","krTD","krLong",
+  "fga","fgm","fgLong","xpa","xpm","dkpata","dkpatm","rouge","deuce",
+  "twoPt","miscPts","gp"
+];
+const RAW = new Set(RAW_FIELDS);
+const MAX_FIELDS = new Set(["passLong","rushLong","recLong","krLong","fgLong"]);
+
+const n0 = v => (v == null ? 0 : v);
+const div = (a,b) => (b == null || b === 0 || a == null ? null : a / b);
+
+const CALC = {
+  compPct   : g => { const r = div(g("comp"), g("att")); return r == null ? null : r * 100; },
+  passYPC   : g => div(g("passYds"), g("comp")),
+  passYPA   : g => div(g("passYds"), g("att")),
+  passYPG   : g => div(g("passYds"), g("gp")),
+  tdPassPct : g => { const r = div(g("passTD"), g("att")); return r == null ? null : r * 100; },
+  rushAvg   : g => div(g("rushYds"), g("car")),
+  rushYPG   : g => div(g("rushYds"), g("gp")),
+  recAvg    : g => div(g("recYds"), g("rec")),
+  recYPG    : g => div(g("recYds"), g("gp")),
+  tkl       : g => (g("solo") == null && g("ast") == null) ? null : n0(g("solo")) + n0(g("ast")),
+  defTD     : g => (g("intTD") == null && g("fumTD") == null && g("bkTD") == null)
+                    ? null : n0(g("intTD")) + n0(g("fumTD")) + n0(g("bkTD")),
+  krYPR     : g => div(g("krYds"), g("kr")),
+  fgPct     : g => { const r = div(g("fgm"), g("fga")); return r == null ? null : r * 100; },
+  xpPct     : g => { const r = div(g("xpm"), g("xpa")); return r == null ? null : r * 100; },
+  dkPct     : g => { const r = div(g("dkpatm"), g("dkpata")); return r == null ? null : r * 100; },
+  kickPts   : g => {
+    const keys = ["fgm","xpm","dkpatm","rouge","deuce"];
+    if (keys.every(k => g(k) == null)) return null;
+    return n0(g("fgm"))*3 + n0(g("xpm")) + n0(g("dkpatm"))*2 + n0(g("rouge")) + n0(g("deuce"))*2;
+  },
+  apYds     : g => {
+    const keys = ["rushYds","recYds","krYds"];
+    if (keys.every(k => g(k) == null)) return null;
+    return n0(g("rushYds")) + n0(g("recYds")) + n0(g("krYds"));
+  },
+  pts       : g => {
+    const keys = ["rushTD","recTD","krTD","intTD","fumTD","bkTD","xpm","dkpatm","fgm","twoPt","saf","rouge","deuce","miscPts"];
+    if (keys.every(k => g(k) == null)) return null;
+    const tds = n0(g("rushTD")) + n0(g("recTD")) + n0(g("krTD")) + n0(g("intTD")) + n0(g("fumTD")) + n0(g("bkTD"));
+    return tds*6 + n0(g("xpm")) + n0(g("dkpatm"))*2 + n0(g("fgm"))*3
+         + n0(g("twoPt"))*2 + n0(g("saf"))*2 + n0(g("rouge")) + n0(g("deuce"))*2 + n0(g("miscPts"));
+  },
+  ptsPG     : g => div(CALC.pts(g), g("gp"))
+};
+
+const SECTIONS = [
+  { id:"passing", name:"Passing", pos:["QB"], cols:[
+    {k:"comp",l:"COMP"},{k:"att",l:"ATT"},{k:"compPct",l:"COMP%",f:"p1"},
+    {k:"passYds",l:"PASS YDS"},{k:"passYPC",l:"YPC",f:"d1"},{k:"passYPA",l:"YPA",f:"d1"},{k:"passYPG",l:"YPG",f:"d1"},
+    {k:"passTD",l:"PASS TD"},{k:"passInt",l:"INT"},{k:"tdPassPct",l:"TD%",f:"p1"},
+    {k:"passLong",l:"LONG"},{k:"sacked",l:"SACKED"},{k:"sackYdsLost",l:"YDS LOST"}
+  ]},
+  { id:"rushing", name:"Rushing", pos:["RB","FB"], cols:[
+    {k:"car",l:"CAR"},{k:"rushYds",l:"RUSH YDS"},{k:"rushAvg",l:"AVG",f:"d1"},{k:"rushYPG",l:"YPG",f:"d1"},
+    {k:"rushTD",l:"RUSH TD"},{k:"rushLong",l:"LONG"},{k:"fum",l:"FUM"},{k:"fumLost",l:"LOST"}
+  ]},
+  { id:"receiving", name:"Receiving", pos:["WR","TE"], cols:[
+    {k:"rec",l:"REC"},{k:"recYds",l:"REC YDS"},{k:"recAvg",l:"AVG",f:"d1"},{k:"recYPG",l:"YPG",f:"d1"},
+    {k:"recTD",l:"REC TD"},{k:"recLong",l:"LONG"}
+  ]},
+  { id:"tackles", name:"Tackles", pos:DEF_POS, cols:[
+    {k:"tkl",l:"TKL"},{k:"solo",l:"SOLO"},{k:"ast",l:"AST"},
+    {k:"tfl",l:"TFL"},{k:"tflYds",l:"TFL YDS"},{k:"sack",l:"SACK",f:"d1"},{k:"sackYds",l:"SACK YDS"}
+  ]},
+  { id:"passdef", name:"Pass Defense", pos:DB_POS, cols:[
+    {k:"int",l:"INT"},{k:"intYds",l:"INT YDS"},{k:"pd",l:"PD"}
+  ]},
+  { id:"deffum", name:"Fumbles", pos:DEF_POS, cols:[
+    {k:"ff",l:"FF"},{k:"fr",l:"FR"},{k:"frYds",l:"FR YDS"}
+  ]},
+  { id:"defmisc", name:"Miscellaneous", pos:DEF_POS, cols:[
+    {k:"bk",l:"BK"},{k:"saf",l:"SAF"},{k:"intTD",l:"INT TD"},{k:"fumTD",l:"FUM TD"},{k:"bkTD",l:"BK TD"},{k:"defTD",l:"DEF TD"}
+  ]},
+  { id:"returning", name:"Returning", pos:[], cols:[
+    {k:"kr",l:"KR"},{k:"krYds",l:"KR YDS"},{k:"krYPR",l:"YPR",f:"d1"},{k:"krTD",l:"KR TD"},{k:"krLong",l:"LONG"}
+  ]},
+  { id:"kicking", name:"Kicking", pos:["K"], cols:[
+    {k:"fga",l:"FGA"},{k:"fgm",l:"FGM"},{k:"fgPct",l:"FG%",f:"p1"},{k:"fgLong",l:"LONG"},
+    {k:"xpa",l:"XPA"},{k:"xpm",l:"XPM"},{k:"xpPct",l:"XP%",f:"p1"},
+    {k:"dkpata",l:"DKPAT A"},{k:"dkpatm",l:"DKPAT M"},{k:"dkPct",l:"DK%",f:"p1"},
+    {k:"rouge",l:"ROUGE"},{k:"deuce",l:"DEUCE"},{k:"kickPts",l:"K PTS"}
+  ]},
+  { id:"allpurpose", name:"All-Purpose", pos:["RB","FB","WR","TE"], cols:[
+    {k:"apYds",l:"AP YDS"},{k:"rushYds",l:"RUSH"},{k:"recYds",l:"REC"},{k:"krYds",l:"KR"}
+  ]},
+  { id:"scoring", name:"Scoring", pos:[], cols:[
+    {k:"pts",l:"PTS"},{k:"ptsPG",l:"PTS/G",f:"d1"},
+    {k:"rushTD",l:"RUSH"},{k:"recTD",l:"REC"},{k:"krTD",l:"KR"},{k:"intTD",l:"INT"},{k:"fumTD",l:"FUM"},{k:"bkTD",l:"BK"},
+    {k:"xpm",l:"XPM"},{k:"dkpatm",l:"DKPAT"},{k:"fgm",l:"FGM"},{k:"twoPt",l:"2PT"},
+    {k:"saf",l:"SAF"},{k:"rouge",l:"ROUGE"},{k:"deuce",l:"DEUCE"},{k:"miscPts",l:"MISC"}
+  ]}
+];
+const SEC = Object.fromEntries(SECTIONS.map(s => [s.id, s]));
+
+// Base order. Reordered per main position by layoutFor().
+const LAYOUT = [
+  {type:"sec",   id:"passing"},
+  {type:"sec",   id:"rushing"},
+  {type:"sec",   id:"receiving"},
+  {type:"group", id:"defense", name:"Defense", subs:["tackles","passdef","deffum","defmisc"]},
+  {type:"sec",   id:"returning"},
+  {type:"sec",   id:"kicking"},
+  {type:"sec",   id:"allpurpose"},
+  {type:"sec",   id:"scoring"}
+];
+
+// Sections a position leads with. Anything unlisted follows in base order.
+const ORDER_BY_POS = {
+  WR:["receiving","rushing","passing"],
+  TE:["receiving","rushing","passing"],
+  RB:["rushing","receiving","passing"],
+  FB:["rushing","receiving","passing"]
+};
+DEF_POS.forEach(x => ORDER_BY_POS[x] = ["defense"]);
+
+function layoutFor(mainPos){
+  const byId = Object.fromEntries(LAYOUT.map(i => [i.id, i]));
+  const out = (ORDER_BY_POS[mainPos] || []).map(id => byId[id]).filter(Boolean);
+  LAYOUT.forEach(i => { if (!out.includes(i)) out.push(i); });
+  return out;
+}
+
+const CAREER_SUMMARY = {
+  QB:["comp","att","compPct","passYds","passTD","passInt"],
+  RB:["car","rushYds","rushAvg","rushYPG","rushTD"], FB:["car","rushYds","rushAvg","rushYPG","rushTD"],
+  WR:["rec","recYds","recAvg","recYPG","recTD"],     TE:["rec","recYds","recAvg","recYPG","recTD"],
+  OL:["gp"], OG:["gp"], OT:["gp"], C:["gp"],
+  DL:["tkl","solo","ast","tfl","sack"], DT:["tkl","solo","ast","tfl","sack"], NT:["tkl","solo","ast","tfl","sack"],
+  LB:["tkl","solo","ast","tfl","int"], JACK:["tkl","solo","ast","tfl","int"], MAC:["tkl","solo","ast","tfl","int"],
+  CB:["tkl","solo","ast","tfl","int","pd"], DB:["tkl","solo","ast","tfl","int","pd"], S:["tkl","solo","ast","tfl","int","pd"],
+  K:["fgm","fga","fgPct","xpa","xpPct","pts"],
+  UNK:["gp"]
+};
+const LABEL = {};
+SECTIONS.forEach(s => s.cols.forEach(c => LABEL[c.k] = c.l));
+LABEL.gp = "GP";
+const FMT = {};
+SECTIONS.forEach(s => s.cols.forEach(c => { if (c.f) FMT[c.k] = c.f; }));
+
+const STATUS = {
+  entered:"", notEntered:"Statistics Not Entered Yet", notAvailable:"Statistics Not Available"
+};
+
+/* ============================================================
+   VALUE ENGINE
+   ============================================================ */
+
+const num = v => { const x = parseFloat(v); return isFinite(x) ? x : null; };
+const isBlank = v => v === undefined || v === null || v === "";
+const rowActive = r => r.status === "entered";
+
+function rowVal(row, key){
+  if (row.ov && !isBlank(row.ov[key])) return num(row.ov[key]);
+  if (RAW.has(key)) return isBlank(row.st[key]) ? null : num(row.st[key]);
+  const fn = CALC[key];
+  return fn ? fn(k => rowVal(row, k)) : null;
+}
+function aggVal(rows, key, ovStore){
+  if (ovStore && !isBlank(ovStore[key])) return num(ovStore[key]);
+  if (RAW.has(key)){
+    const vals = rows.filter(rowActive).map(r => rowVal(r, key)).filter(v => v != null);
+    if (!vals.length) return null;
+    return MAX_FIELDS.has(key) ? Math.max(...vals) : vals.reduce((a,b) => a+b, 0);
+  }
+  const fn = CALC[key];
+  return fn ? fn(k => aggVal(rows, k, ovStore)) : null;
+}
+function fmt(v, f){
+  if (v == null) return "";
+  if (f === "d1" || f === "p1") return (Math.round(v*10)/10).toFixed(1);
+  return Number.isInteger(v) ? String(v) : String(Math.round(v*10)/10);
+}
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ============================================================
+   DATA
+   ============================================================ */
+
+let db = null, INDEX = {}, curPlayer = null;
+const $ = id => document.getElementById(id);
+const view = () => $("view");
+
+function playerFromFb(pid, d){
+  const rows = Object.keys(d.rows || {}).map(rid => {
+    const r = d.rows[rid];
+    return { rid, year:String(r.year||""), league:String(r.league||""), team:String(r.team||""),
+             pos:String(r.pos||""), status:r.status||"entered", st:r.st||{}, ov:r.ov||{} };
+  }).sort((a,b) =>
+    (parseInt(a.year,10)||0) - (parseInt(b.year,10)||0) ||
+    String(a.league).localeCompare(String(b.league)) ||
+    String(a.team).localeCompare(String(b.team)));
+  return { pid, name:d.name||pid, mainPos:d.mainPos||"", positions:d.positions||[],
+           htFt:d.htFt||"", htIn:d.htIn||"", wt:d.wt||"", colleges:d.colleges||"",
+           awards:d.awards||"", careerOv:d.careerOv||{}, rows };
+}
+
+/* ============================================================
+   SECTION VISIBILITY
+   ============================================================ */
+
+function sectionHasData(rows, secId){
+  const s = SEC[secId];
+  const live = rows.filter(rowActive);
+  if (secId === "scoring") return live.some(r => (rowVal(r,"pts") || 0) > 0);
+  return live.some(r => s.cols.some(c => rowVal(r, c.k) != null));
+}
+function sectionApplies(mainPos, secId){
+  return !!mainPos && SEC[secId].pos.includes(mainPos);
+}
+function showSection(p, secId){
+  return sectionApplies(p.mainPos, secId) || sectionHasData(p.rows, secId);
+}
+
+/* ============================================================
+   RENDER — DIRECTORY
+   ============================================================ */
+
+let q = "", fPos = "", fLeague = "";
+
+function renderDirectory(){
+  const ids = Object.keys(INDEX);
+  const positions = [...new Set(ids.map(p => INDEX[p].p).filter(Boolean))].sort();
+  const leagues   = [...new Set(ids.flatMap(p => INDEX[p].l || []).filter(Boolean))].sort();
+
+  const t = q.trim().toLowerCase();
+  const shown = ids.filter(pid => {
+    const e = INDEX[pid];
+    if (t && !(e.n || "").toLowerCase().includes(t) && !pid.includes(t)) return false;
+    if (fPos && e.p !== fPos) return false;
+    if (fLeague && !(e.l || []).includes(fLeague)) return false;
+    return true;
+  }).sort((a,b) => (INDEX[a].n || "").localeCompare(INDEX[b].n || ""));
+
+  view().innerHTML =
+    '<div class="filters">' +
+      '<input type="text" id="q" placeholder="Search players…" value="' + esc(q) + '">' +
+      '<select id="fPos"><option value="">All positions</option>' +
+        positions.map(x => '<option' + (x === fPos ? " selected" : "") + '>' + esc(x) + '</option>').join("") +
+      '</select>' +
+      (leagues.length ? '<select id="fLeague"><option value="">All leagues</option>' +
+        leagues.map(x => '<option' + (x === fLeague ? " selected" : "") + '>' + esc(x) + '</option>').join("") +
+      '</select>' : "") +
+    '</div>' +
+    '<div class="dircount">' + shown.length + ' of ' + ids.length + ' players</div>' +
+    (shown.length
+      ? '<div class="dirgrid">' + shown.map(pid => {
+          const e = INDEX[pid];
+          const span = e.a == null ? "" : (e.a === e.b ? e.a : e.a + "–" + String(e.b).slice(-2));
+          return '<a class="pcard" href="?player=' + encodeURIComponent(pid) + '">' +
+                   '<span class="nm">' + esc(e.n || pid) + '</span>' +
+                   '<span class="mt">' + (e.p ? '<b>' + esc(e.p) + '</b> ' : "") + esc(span) + '</span>' +
+                 '</a>';
+        }).join("") + '</div>'
+      : '<div class="msg"><b>No players match</b>Try a different search or clear the filters.</div>');
+
+  $("q").addEventListener("input", e => {
+    q = e.target.value;
+    const pos = e.target.selectionStart;
+    renderDirectory();
+    const box = $("q"); box.focus(); box.setSelectionRange(pos, pos);
+  });
+  $("fPos").addEventListener("change", e => { fPos = e.target.value; renderDirectory(); });
+  if ($("fLeague")) $("fLeague").addEventListener("change", e => { fLeague = e.target.value; renderDirectory(); });
+}
+
+/* ============================================================
+   RENDER — PROFILE
+   ============================================================ */
+
+function statTable(p, secId){
+  const s = SEC[secId];
+  const rows = p.rows;
+  const live = rows.filter(rowActive);
+
+  let h = '<div class="tblwrap"><table class="st"><thead><tr>' +
+    '<th class="lft">YEAR</th><th class="lft">LEAGUE</th><th class="lft">TEAM</th>' +
+    '<th class="lft">POS</th><th>GP</th>';
+  s.cols.forEach(c => h += '<th>' + c.l + '</th>');
+  h += '</tr></thead><tbody>';
+
+  const groups = {};
+  rows.forEach(r => { const k = r.league + "|" + r.year; (groups[k] = groups[k] || []).push(r); });
+  const done = new Set();
+
+  rows.forEach(r => {
+    h += '<tr>' +
+      '<td class="lft yr">' + esc(r.year) + '</td>' +
+      '<td class="lft lg">' + esc(r.league) + '</td>' +
+      '<td class="lft">' + esc(r.team) + '</td>' +
+      '<td class="lft">' + esc(r.pos) + '</td>';
+    if (!rowActive(r)){
+      h += '<td class="blk" colspan="' + (s.cols.length + 1) + '"><span>' + STATUS[r.status] + '</span></td>';
+    } else {
+      h += '<td>' + fmt(rowVal(r,"gp")) + '</td>';
+      s.cols.forEach(c => h += '<td>' + fmt(rowVal(r, c.k), c.f) + '</td>');
+    }
+    h += '</tr>';
+
+    const gk = r.league + "|" + r.year, grp = groups[gk];
+    if (grp.length > 1 && grp[grp.length-1].rid === r.rid && !done.has(gk)){
+      done.add(gk);
+      h += '<tr class="combo">' +
+        '<td class="lft">' + esc(r.year) + '</td>' +
+        '<td class="lft">' + esc(r.league) + '</td>' +
+        '<td class="lft">' + grp.length + 'TM</td>' +
+        '<td class="lft">' + esc(r.pos) + '</td>' +
+        '<td>' + fmt(aggVal(grp,"gp",null)) + '</td>';
+      s.cols.forEach(c => h += '<td>' + fmt(aggVal(grp, c.k, null), c.f) + '</td>');
+      h += '</tr>';
+    }
+  });
+
+  if (live.length){
+    const teams = new Set(live.map(r => r.team).filter(Boolean));
+    const lgs   = [...new Set(live.map(r => r.league).filter(Boolean))];
+    h += '<tr class="career">' +
+      '<td class="lft">CAREER</td>' +
+      '<td class="lft">' + esc(lgs.length > 1 ? lgs.length + " LG" : (lgs[0] || "")) + '</td>' +
+      '<td class="lft">' + teams.size + ' TM</td>' +
+      '<td class="lft">' + esc(p.mainPos) + '</td>' +
+      '<td>' + fmt(aggVal(rows,"gp",p.careerOv)) + '</td>';
+    s.cols.forEach(c => h += '<td>' + fmt(aggVal(rows, c.k, p.careerOv), c.f) + '</td>');
+    h += '</tr>';
+  }
+
+  return h + '</tbody></table></div>';
+}
+
+function renderProfile(p){
+  const live = p.rows.filter(rowActive);
+  const teams = [...new Set(p.rows.map(r => r.team).filter(Boolean))];
+  const ht = (p.htFt || p.htIn) ? (p.htFt || "?") + "-" + (p.htIn || "0") : "";
+
+  // header
+  let h = '<a class="backlink" href="?">← All players</a>' +
+    '<div class="phead">' +
+      '<h2>' + esc(p.name) + '</h2>';
+
+  const posList = p.positions.length ? p.positions : (p.mainPos ? [p.mainPos] : []);
+  h += '<div class="posline">' +
+    (posList.length
+      ? posList.map(x => '<span class="posbadge' + (x === p.mainPos ? " main" : "") + '">' + esc(x) + '</span>').join("")
+      : '<span class="posbadge">POSITION UNKNOWN</span>') +
+  '</div>';
+
+  h += '<div class="bio">';
+  if (ht)          h += '<div><span class="lbl">HEIGHT</span>' + esc(ht) + '</div>';
+  if (p.wt)        h += '<div><span class="lbl">WEIGHT</span>' + esc(p.wt) + ' lbs</div>';
+  if (p.colleges)  h += '<div><span class="lbl">COLLEGE</span>' + esc(p.colleges) + '</div>';
+  if (teams.length)h += '<div><span class="lbl">TEAMS</span>' + esc(teams.join(", ")) + '</div>';
+  if (p.awards)    h += '<div><span class="lbl">AWARDS</span><span class="awards">' + esc(p.awards) + '</span></div>';
+  h += '</div></div>';
+
+  // career summary from main position
+  const keys = CAREER_SUMMARY[p.mainPos] || null;
+  if (keys && live.length){
+    h += '<div class="summary">' + keys.map(k =>
+      '<div class="scard"><div class="v">' +
+        (fmt(aggVal(p.rows, k, p.careerOv), FMT[k]) || "—") +
+      '</div><div class="k">' + esc(LABEL[k] || k.toUpperCase()) + '</div></div>').join("") + '</div>';
+  } else if (!keys && live.length){
+    h += '<div class="summary"><span class="note">No main position set — career summary unavailable.</span></div>';
+  }
+
+  if (!p.rows.length){
+    h += '<div class="msg"><b>No seasons on record</b>Nothing has been entered for this player yet.</div>';
+    view().innerHTML = h;
+    return;
+  }
+
+  // statistical sections, ordered by main position
+  layoutFor(p.mainPos).forEach(item => {
+    if (item.type === "sec"){
+      if (!showSection(p, item.id)) return;
+      h += '<section class="stat"><h3>' + esc(SEC[item.id].name) + '</h3>' +
+           statTable(p, item.id) + '</section>';
+    } else {
+      const subs = item.subs.filter(id => showSection(p, id));
+      if (!subs.length) return;
+      h += '<section class="stat"><h3>' + esc(item.name) + '</h3>';
+      subs.forEach(id => {
+        h += '<h4>' + esc(SEC[id].name) + '</h4>' + statTable(p, id);
+      });
+      h += '</section>';
+    }
+  });
+
+  view().innerHTML = h;
+  document.title = p.name + " — GridMaster";
+}
+
+/* ============================================================
+   ROUTING
+   ============================================================ */
+
+function setStatus(t){ $("statusline").textContent = t; }
+
+async function route(){
+  const pid = new URLSearchParams(location.search).get("player");
+  if (!pid){
+    document.title = "Player Index — GridMaster";
+    setStatus(Object.keys(INDEX).length + " players");
+    renderDirectory();
+    return;
+  }
+  view().innerHTML = '<div class="msg"><b>Loading…</b></div>';
+  try {
+    let snap = await db.ref(P_PLAYERS + "/" + pid).get();
+    if (!snap.exists()){
+      const al = await db.ref(P_ALIAS + "/" + pid).get();   // old slug after a rename
+      if (al.exists()){ location.replace("?player=" + encodeURIComponent(al.val())); return; }
+      view().innerHTML = '<a class="backlink" href="?">← All players</a>' +
+        '<div class="msg"><b>Player not found</b>No record exists for “' + esc(pid) + '”.</div>';
+      setStatus("not found");
+      return;
+    }
+    curPlayer = playerFromFb(pid, snap.val());
+    setStatus(curPlayer.rows.length + " season" + (curPlayer.rows.length === 1 ? "" : "s") + " on record");
+    renderProfile(curPlayer);
+  } catch (err){
+    view().innerHTML = '<div class="msg"><b>Could not load</b>' + esc(err.message) + '</div>';
+    setStatus("error");
+  }
+}
+
+async function boot(){
+  try {
+    firebase.initializeApp(FB_CONFIG);
+    db = firebase.database();
+  } catch (err){
+    view().innerHTML = '<div class="msg"><b>Connection failed</b>' + esc(err.message) + '</div>';
+    return;
+  }
+  try {
+    const snap = await db.ref(P_INDEX).get();
+    INDEX = snap.val() || {};
+  } catch (err){
+    view().innerHTML = '<div class="msg"><b>Could not load the player index</b>' + esc(err.message) + '</div>';
+    setStatus("error");
+    return;
+  }
+  route();
+}
+
+window.addEventListener("popstate", route);
+document.addEventListener("click", e => {
+  const a = e.target.closest('a[href^="?"]');
+  if (!a) return;
+  e.preventDefault();
+  history.pushState(null, "", a.getAttribute("href"));
+  route();
+});
+
+boot();
+</script>
+</body>
+</html>
